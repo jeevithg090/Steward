@@ -14,14 +14,19 @@ import type {
 } from "@steward/shared";
 import { newId } from "@steward/shared";
 import { ProactiveError } from "./errors.ts";
+import { stripReasoning } from "./reasoning.ts";
 import { suggestFromBrief } from "./suggestions.ts";
 import { isIsoDate, isKnownTimeZone, localDate, localDayBounds, localTime, weekdayOf } from "./time.ts";
-import type { TriageEmail } from "./triage.ts";
+import { type TriageEmail, withoutOwnerNames } from "./triage.ts";
 import type { TriageService } from "./triage-service.ts";
 
 /** The brief sorts at most this many messages; it says so when there were more. */
 export const BRIEF_MAIL_CAP = 50;
-const MAIL_WINDOW_MS = 24 * 3600_000;
+/** The brief reads mail since the last brief, but never less than a day and never more than this. */
+export const BRIEF_MAIL_MAX_DAYS = 3;
+const DAY_MS = 24 * 3600_000;
+/** What a brief that couldn't read the mail lists under could not check. */
+const MAIL_UNREAD = "Mail: couldn't be read just now";
 const BRIEF_TASKS_MAX = 10;
 const SUMMARY_MAX = 500;
 
@@ -41,17 +46,48 @@ function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
+/** Which mail a brief reads: from `since` to now, with the words that say so. */
+export interface MailWindow {
+  since: Date;
+  /** "in the last day", "since the last brief" or "in the last 3 days". */
+  words: string;
+  /** True when the last brief to read the mail was longer ago than the window reaches. */
+  cut: boolean;
+}
+
+/**
+ * Mail since the last brief, so a late morning or a weekend away leaves no gap between briefs. At
+ * least the last day (a first brief, or a second one the same day) and at most the last three days.
+ */
+export function mailWindow(at: Date, previousBriefAt: string | undefined): MailWindow {
+  const dayAgo = at.getTime() - DAY_MS;
+  const maxAgo = at.getTime() - BRIEF_MAIL_MAX_DAYS * DAY_MS;
+  const previous = previousBriefAt ? Date.parse(previousBriefAt) : Number.NaN;
+  if (Number.isNaN(previous) || previous >= dayAgo) {
+    return { since: new Date(dayAgo), words: "in the last day", cut: false };
+  }
+  if (previous < maxAgo) {
+    return { since: new Date(maxAgo), words: `in the last ${BRIEF_MAIL_MAX_DAYS} days`, cut: true };
+  }
+  return { since: new Date(previous), words: "since the last brief", cut: false };
+}
+
 /** Newest first; a message whose date cannot be read is kept rather than silently dropped. */
-async function readMail(mail: MailCalendar, now: Date): Promise<{ emails: TriageEmail[]; capped: boolean }> {
+async function readMail(
+  mail: MailCalendar,
+  at: Date,
+  window: MailWindow,
+): Promise<{ emails: TriageEmail[]; capped: boolean }> {
   const ask = BRIEF_MAIL_CAP + 1;
-  let listed = await mail.listEmails({ query: "in:inbox newer_than:1d", limit: ask });
+  const days = Math.max(1, Math.ceil((at.getTime() - window.since.getTime()) / DAY_MS));
+  let listed = await mail.listEmails({ query: `in:inbox newer_than:${days}d`, limit: ask });
   // A connector that reads the query as plain text finds nothing; ask again and filter here.
   if (listed.length === 0) listed = await mail.listEmails({ limit: ask });
-  const since = now.getTime() - MAIL_WINDOW_MS;
+  const since = window.since.getTime();
   const recent = listed
     .filter((email) => {
-      const at = Date.parse(email.receivedAt);
-      return Number.isNaN(at) || at >= since;
+      const received = Date.parse(email.receivedAt);
+      return Number.isNaN(received) || received >= since;
     })
     .sort((a, b) => (Date.parse(b.receivedAt) || 0) - (Date.parse(a.receivedAt) || 0));
   return { emails: recent.slice(0, BRIEF_MAIL_CAP) as TriageEmail[], capped: recent.length > BRIEF_MAIL_CAP };
@@ -96,11 +132,17 @@ export interface SummaryInput {
   date: string;
   timeZone: string;
   mailConnected: boolean;
+  /** False when mail is connected but could not be read: an empty list then proves nothing. */
+  mailRead: boolean;
+  /** False when the calendar could not be read (or is not connected). */
+  calendarRead: boolean;
   needsYou: TriageItem[];
   canWait: TriageItem[];
   calendar: CalendarEvent[];
   tasks: Task[];
   couldNotCheck: string[];
+  /** Which mail was read. Without it, the last day. */
+  mailWindow?: MailWindow;
 }
 
 function eventTime(event: CalendarEvent, timeZone: string): string {
@@ -113,7 +155,16 @@ export function summaryPrompt(input: SummaryInput): string {
   const facts = {
     date: input.date,
     weekday: weekdayOf(input.date),
-    mail: input.mailConnected ? "connected" : "not connected",
+    mail: !input.mailConnected
+      ? "not connected"
+      : input.mailRead
+        ? "connected"
+        : "connected, but could not be read just now",
+    ...(input.mailRead && input.mailWindow
+      ? {
+          mailChecked: `${input.mailWindow.words}, from ${weekdayOf(localDate(input.mailWindow.since, input.timeZone))} ${localTime(input.mailWindow.since.toISOString(), input.timeZone)}`,
+        }
+      : {}),
     needsYou: sorted.slice(0, 8).map((item) => ({
       from: item.from.name || item.from.email,
       subject: item.subject,
@@ -121,9 +172,11 @@ export function summaryPrompt(input: SummaryInput): string {
     })),
     couldNotSortCount: input.needsYou.length - sorted.length,
     canWaitCount: input.canWait.length,
-    calendar: input.calendar
-      .slice(0, 8)
-      .map((event) => ({ title: event.title, time: eventTime(event, input.timeZone) })),
+    calendar: input.calendarRead
+      ? input.calendar
+          .slice(0, 8)
+          .map((event) => ({ title: event.title, time: eventTime(event, input.timeZone) }))
+      : "could not be read",
     tasks: input.tasks
       .slice(0, 5)
       .map((task) => ({ title: task.title, state: task.state.replace(/_/g, " ") })),
@@ -135,11 +188,11 @@ export function summaryPrompt(input: SummaryInput): string {
 }
 
 /**
- * Tidies a model's summary: no fences, quotes, markdown or greeting, at most three sentences.
+ * Tidies a model's summary: no thinking, fences, quotes, markdown or greeting, at most three sentences.
  * Returns undefined when nothing usable is left, so the plain summary takes over.
  */
 export function cleanSummary(text: string): string | undefined {
-  let out = text
+  let out = stripReasoning(text)
     .replace(/```[a-z]*\n?|```/gi, " ")
     .replace(/^\s*(#+|[-*•]|\d+[.)])\s+/gm, "")
     .replace(/\*\*|__|(?<!\w)[*_](?!\s)|(?<!\s)[*_](?!\w)/g, "")
@@ -163,7 +216,10 @@ export function cleanSummary(text: string): string | undefined {
   return out.charAt(0).toUpperCase() + out.slice(1);
 }
 
-/** The summary written without a model: always true, never clever. */
+/**
+ * The summary written without a model: always true, never clever. An empty list only means
+ * "nothing" when the source was read; a source that could not be read is said to be unread.
+ */
 export function plainSummary(input: SummaryInput): string {
   if (!input.mailConnected) {
     return "Mail and calendar aren't connected yet, so there's nothing to sort. You can connect them on the Connections page.";
@@ -173,9 +229,19 @@ export function plainSummary(input: SummaryInput): string {
   const unsorted = input.needsYou.length - sorted.length;
   const waiting = input.canWait.length;
   const first = sorted[0];
+  const quiet = input.needsYou.length === 0 && waiting === 0;
 
-  if (input.needsYou.length === 0 && waiting === 0 && input.calendar.length === 0) {
+  let calendarSaid = false;
+  if (!input.mailRead) {
+    sentences.push(
+      input.calendarRead
+        ? "Your mail couldn't be read just now, so this brief may be missing what needs you."
+        : "Your mail and calendar couldn't be read just now, so this brief may be missing what needs you.",
+    );
+    calendarSaid = !input.calendarRead;
+  } else if (quiet && input.calendarRead && input.calendar.length === 0) {
     sentences.push("Nothing new needs you, and nothing is on your calendar today.");
+    calendarSaid = true;
   } else {
     if (first) {
       const sender = first.from.name || first.from.email;
@@ -185,7 +251,9 @@ export function plainSummary(input: SummaryInput): string {
           : "One email needs you";
       sentences.push(`${more}, starting with ${sender} about “${first.subject}”.`);
     } else if (input.needsYou.length === 0) {
-      sentences.push(waiting > 0 ? "No email needs you." : "No new mail in the last day.");
+      sentences.push(
+        waiting > 0 ? "No email needs you." : `No new mail ${input.mailWindow?.words ?? "in the last day"}.`,
+      );
     }
     if (unsorted > 0) {
       sentences.push(
@@ -193,15 +261,22 @@ export function plainSummary(input: SummaryInput): string {
       );
     }
     if (waiting > 0) sentences.push(`${plural(waiting, "email", "emails")} can wait.`);
+  }
+
+  if (!calendarSaid) {
     const event = input.calendar[0];
-    if (event) {
+    if (!input.calendarRead) {
+      // A failed read is never the sentence that gets cut.
+      sentences.splice(2);
+      sentences.push("Your calendar couldn't be read just now.");
+    } else if (event) {
       const when = event.allDay
         ? "all day"
         : `at ${localTime(event.start, input.timeZone) ?? "a time to check"}`;
       sentences.push(
         `You have ${plural(input.calendar.length, "thing", "things")} on your calendar today, starting with “${event.title}” ${when}.`,
       );
-    } else if (input.needsYou.length > 0 || waiting > 0) {
+    } else {
       sentences.push("Nothing is on your calendar today.");
     }
   }
@@ -233,22 +308,97 @@ async function modelSummary(
 
 // ── The service ────────────────────────────────────────────────────────────────────────────────
 
+/** A build in progress, shared by every caller asking for the same date. */
+interface SharedBuild {
+  promise: Promise<Brief>;
+  controller: AbortController;
+  /** Callers still waiting who could give up. */
+  waiting: number;
+  /** True once a caller with no signal has joined: it never gives up, so the build never stops. */
+  patient: boolean;
+  /** Forgets this build, so the next caller starts a fresh one. */
+  drop: () => void;
+}
+
+/**
+ * Waits on a shared build with this caller's own signal. Giving up rejects only this caller; the
+ * build is stopped when the last caller who could give up does, and no patient caller is waiting.
+ */
+function join(shared: SharedBuild, signal: AbortSignal | undefined): Promise<Brief> {
+  if (!signal) {
+    shared.patient = true;
+    return shared.promise;
+  }
+  shared.waiting += 1;
+  return new Promise<Brief>((resolve, reject) => {
+    const onAbort = () => {
+      reject(signal.reason);
+      shared.waiting -= 1;
+      if (shared.waiting === 0 && !shared.patient) {
+        shared.drop();
+        shared.controller.abort(signal.reason);
+      }
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    shared.promise.then(
+      (brief) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(brief);
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(error);
+      },
+    );
+  });
+}
+
 /**
  * The morning brief: what needs you, what can wait, today's calendar, the work in hand, and what
  * could not be checked and why. Honesty is in the code, not the prompt: mail that could not be
  * sorted is listed under needs you, a capped window says so, and a missing connection is named.
  *
- * One brief per local date. `generate` returns the stored one unless `force`; two callers asking at
- * once share one build. A new brief announces itself (`brief.ready` and a notification) and turns
- * up to five needs-you items into suggested tasks.
+ * One brief per local date, today or earlier. `generate` returns the stored one unless `force`;
+ * callers asking for the same date at once share one build, which stops only when every one of them
+ * has given up. The first brief for a date announces itself with a notification; every build emits
+ * `brief.ready` and turns up to five needs-you items into suggested tasks.
  */
 export function createBriefService(deps: BriefDeps): BriefService {
   const { db, bus, now } = deps;
-  const building = new Map<string, Promise<Brief>>();
+  const building = new Map<string, SharedBuild>();
+
+  /** The person's zone, or UTC with a note when Steward does not know it. */
+  function zone(): { timeZone: string; zoneNote?: string } {
+    const configured = deps.timezone();
+    if (isKnownTimeZone(configured)) return { timeZone: configured };
+    return {
+      timeZone: "UTC",
+      zoneNote: `Timezone: “${configured}” isn't one Steward knows, so times are in UTC`,
+    };
+  }
 
   function stored(date: string): Brief | undefined {
     const row = db.get<{ body: string }>("SELECT body FROM proactive_briefs WHERE date = ?", [date]);
     return row ? fromJson<Brief | undefined>(row.body, undefined) : undefined;
+  }
+
+  /**
+   * When an earlier brief last read the mail. A brief that couldn't read it is passed over, so the
+   * mail it missed is read by the next one; past a few such briefs the 3-day reach takes over.
+   */
+  function lastMailRead(date: string): string | undefined {
+    const earlier = db.all<{ created_at: string; body: string }>(
+      "SELECT created_at, body FROM proactive_briefs WHERE date < ? ORDER BY date DESC LIMIT ?",
+      [date, BRIEF_MAIL_MAX_DAYS + 1],
+    );
+    for (const row of earlier) {
+      const body = fromJson<Brief | undefined>(row.body, undefined);
+      if (!body?.couldNotCheck?.includes(MAIL_UNREAD)) return row.created_at;
+    }
+    // None of them read the mail. The oldest would have read the day before it was made, so start
+    // there: a first brief that failed must not leave its own day in no brief.
+    const oldest = earlier.length > 0 ? Date.parse(earlier[earlier.length - 1]!.created_at) : Number.NaN;
+    return Number.isNaN(oldest) ? undefined : new Date(oldest - DAY_MS).toISOString();
   }
 
   async function build(
@@ -263,27 +413,38 @@ export function createBriefService(deps: BriefDeps): BriefService {
     let needsYou: TriageItem[] = [];
     let canWait: TriageItem[] = [];
     let calendar: CalendarEvent[] = [];
+    let mailRead = false;
+    let calendarRead = false;
+    let ownerNames: string[] = [];
+    const window = mailWindow(at, lastMailRead(date));
 
     if (!mail) {
       couldNotCheck.push("Mail: not connected", "Calendar: not connected");
     } else {
       let emails: TriageEmail[] = [];
       try {
-        const read = await readMail(mail, at);
+        const read = await readMail(mail, at, window);
         emails = read.emails;
+        mailRead = true;
+        if (window.cut) {
+          couldNotCheck.push(
+            `Mail: only the last ${BRIEF_MAIL_MAX_DAYS} days were checked; the last brief to read it was longer ago than that`,
+          );
+        }
         if (read.capped) {
           couldNotCheck.push(
-            `Mail: only the newest ${BRIEF_MAIL_CAP} messages from the last day were sorted; older ones weren't checked`,
+            `Mail: only the newest ${BRIEF_MAIL_CAP} messages ${window.words.replace(/^in /, "from ")} were sorted; older ones weren't checked`,
           );
         }
       } catch {
         signal?.throwIfAborted();
-        couldNotCheck.push("Mail: couldn't be read just now");
+        couldNotCheck.push(MAIL_UNREAD);
       }
       signal?.throwIfAborted();
 
       if (emails.length > 0) {
         const run = await deps.triage.run(emails, signal ? { signal } : {});
+        ownerNames = run.ownerNames;
         needsYou = orderNeedsYou(run.items.filter((item) => item.verdict === "needs_you"));
         canWait = run.items.filter((item) => item.verdict === "can_wait");
         if (run.unsorted > 0 && run.modelMissing) {
@@ -301,6 +462,7 @@ export function createBriefService(deps: BriefDeps): BriefService {
       try {
         const events = await mail.listEvents({ from: from.toISOString(), to: to.toISOString() });
         calendar = eventsOn(events, date, from, to);
+        calendarRead = true;
       } catch {
         signal?.throwIfAborted();
         couldNotCheck.push("Calendar: couldn't be read just now");
@@ -318,17 +480,29 @@ export function createBriefService(deps: BriefDeps): BriefService {
       date,
       timeZone,
       mailConnected: mail !== undefined,
+      mailRead,
+      calendarRead,
       needsYou,
       canWait,
       calendar,
       tasks,
       couldNotCheck,
+      mailWindow: window,
     };
-    // With no mail there is nothing to summarise; the plain summary says how to connect it.
-    const model = mail ? deps.model() : undefined;
+    // With no mail there is nothing to summarise; the plain summary says how to connect it. When a
+    // source could not be read, the plain summary says so in words the code chose: a model handed
+    // an empty list is too ready to call it an all-clear.
+    const model = mail && mailRead && calendarRead ? deps.model() : undefined;
     let summary = model ? await modelSummary(model, input, signal) : undefined;
     signal?.throwIfAborted();
     summary ??= plainSummary(input);
+    // The mail may name its owner ("Hi Sam,"); the summary never does. A sender who shares the
+    // owner's given name ("Sam Patel") keeps their own name.
+    summary = withoutOwnerNames(
+      summary,
+      ownerNames,
+      [...needsYou, ...canWait].map((item) => item.from.name),
+    );
     if (mail?.isDemo && !/\bdemo\b/i.test(summary)) summary = `From the demo inbox: ${summary}`;
 
     return {
@@ -345,18 +519,22 @@ export function createBriefService(deps: BriefDeps): BriefService {
   }
 
   function save(brief: Brief): void {
+    const first = stored(brief.date) === undefined;
     db.run(
       `INSERT INTO proactive_briefs (date, id, body, created_at) VALUES (?, ?, ?, ?)
        ON CONFLICT (date) DO UPDATE SET id = excluded.id, body = excluded.body, created_at = excluded.created_at`,
       [brief.date, brief.id, toJson(brief), brief.createdAt],
     );
     bus?.emit({ type: "brief.ready", briefId: brief.id });
-    deps.notifications.add({
-      title: "Your brief is ready",
-      body: brief.summary.length > 200 ? `${brief.summary.slice(0, 199).trimEnd()}…` : brief.summary,
-      href: "/",
-      level: "info",
-    });
+    // "Check again" is asked for by someone already looking; only the day's first brief notifies.
+    if (first) {
+      deps.notifications.add({
+        title: "Your brief is ready",
+        body: brief.summary.length > 200 ? `${brief.summary.slice(0, 199).trimEnd()}…` : brief.summary,
+        href: "/",
+        level: "info",
+      });
+    }
     try {
       suggestFromBrief(brief, { tasks: deps.tasks, now });
     } catch {
@@ -369,36 +547,54 @@ export function createBriefService(deps: BriefDeps): BriefService {
       return stored(date);
     },
 
+    /** The newest brief up to today in the person's zone: a brief for a later date never shows as today's. */
     latest() {
-      const row = db.get<{ body: string }>("SELECT body FROM proactive_briefs ORDER BY date DESC LIMIT 1");
+      const today = localDate(now(), zone().timeZone);
+      const row = db.get<{ body: string }>(
+        "SELECT body FROM proactive_briefs WHERE date <= ? ORDER BY date DESC LIMIT 1",
+        [today],
+      );
       return row ? fromJson<Brief | undefined>(row.body, undefined) : undefined;
     },
 
     generate(opts = {}) {
-      const configured = deps.timezone();
-      const known = isKnownTimeZone(configured);
-      const timeZone = known ? configured : "UTC";
-      const zoneNote = known
-        ? undefined
-        : `Timezone: “${configured}” isn't one Steward knows, so times are in UTC`;
-      const date = opts.date ?? localDate(now(), timeZone);
+      const { timeZone, zoneNote } = zone();
+      const today = localDate(now(), timeZone);
+      const date = opts.date ?? today;
       if (!isIsoDate(date)) {
         return Promise.reject(new ProactiveError("invalid", "A date must be YYYY-MM-DD."));
+      }
+      if (date > today) {
+        return Promise.reject(
+          new ProactiveError("invalid", "A brief can be made for today or an earlier day."),
+        );
       }
       if (!opts.force) {
         const existing = stored(date);
         if (existing) return Promise.resolve(existing);
       }
-      const inFlight = building.get(date);
-      if (inFlight) return inFlight;
-      const promise = build(date, timeZone, zoneNote, opts.signal)
-        .then((brief) => {
-          save(brief);
-          return brief;
-        })
-        .finally(() => building.delete(date));
-      building.set(date, promise);
-      return promise;
+      if (opts.signal?.aborted) return Promise.reject(opts.signal.reason);
+      let shared = building.get(date);
+      if (!shared) {
+        const controller = new AbortController();
+        const entry: SharedBuild = {
+          controller,
+          waiting: 0,
+          patient: false,
+          drop: () => {
+            if (building.get(date) === entry) building.delete(date);
+          },
+          promise: build(date, timeZone, zoneNote, controller.signal).then((brief) => {
+            save(brief);
+            return brief;
+          }),
+        };
+        // Every caller handles the outcome through `join`; this only tidies up.
+        entry.promise.then(entry.drop, entry.drop);
+        building.set(date, entry);
+        shared = entry;
+      }
+      return join(shared, opts.signal);
     },
   };
 }

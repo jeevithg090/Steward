@@ -99,38 +99,68 @@ Needs you or can wait, with a one-line reason, for each email. Adapted from Open
    and failed payments are auto-generated.
 2. **Then the model**, eight at a time, with the prompt in `TRIAGE_SYSTEM` + `triagePrompt`. It never
    names you: it knows your address (from the connector or the most-addressed recipient) and what you
-   told Steward about yourself in Memory. The message is fenced as data.
+   told Steward about yourself in Memory. The message is fenced as data. Your own address is shown
+   bare, without the display name your mail account puts on it, and if the model still uses that
+   name (from a "Hi Sam," or "Dear Ms Taylor," in the body), the reason and the brief's summary say
+   "you" instead.
 3. **Never a silent guess.** When the model fails or is missing, the email goes under needs you with
    "Couldn't sort this one; showing it to be safe.", `by: "rules"`, confidence 0, and the brief says
    how many and why. Provider error text is never stored: it can echo parts of a key.
 
-Model verdicts are cached by email id, so the inbox and the brief do not pay twice.
-`EmailSummary` has no headers; connectors may add `headers`, `cc` and `body` (see `TriageEmail`).
+The model's answer is read after dropping any thinking (`<think>…</think>`, as reasoning models such
+as qwen3 and deepseek-r1 write it); then each `{…}` in it is tried, the last first. An answer that
+gives two different verdicts is refused, not guessed, so the email shows under needs you. The
+brief's summary drops thinking too.
+
+Model verdicts are cached by email id, so the inbox and the brief do not pay twice. A cached verdict
+is reused only from the same model, with the same prompt and the same facts you gave in Memory, and
+for 30 days; telling Steward who your accountant is takes effect on the next sort. With no model set
+up, a recent verdict from any model is still shown.
+Before the model sorts a message, triage reads it whole with `getEmail` (body, Cc and headers), as
+the eval does, so "you are copied" and the ask at the end of a long message are seen. Mail the rules
+settle, or the cache knows, is never fetched. A read that fails or takes over five seconds keeps the
+summary, and the rest of that run uses summaries. Connectors may also put `headers`, `cc` and `body`
+on summaries (see `TriageEmail`).
 
 ### The morning brief
 
-`brief.generate({ date?, force? })` builds one brief per local date and stores it; asking again
-returns the stored one unless `force`, and two callers at once share one build.
+`brief.generate({ date?, force?, signal? })` builds one brief per local date and stores it; asking
+again returns the stored one unless `force`. The date is today or earlier in your timezone; a later
+one is refused with "A brief can be made for today or an earlier day.", and `latest()` never returns
+a brief for a later date. Callers asking at once share one build, and each `signal` lets only its own
+caller give up: the build stops only when every caller has, so a browser closing its tab never
+cancels the brief the morning worker is waiting for.
 
-- Mail from the last 24 hours, newest first, at most 50. When there were more, it says so.
+- Mail since the last brief, so a late morning or a weekend away leaves no gap: at least the last
+  day, at most the last 3 days ("Mail: only the last 3 days were checked" when the last brief to
+  read it was longer ago). A brief that couldn't read the mail doesn't count, so the next one reads
+  back past it, or, when no earlier brief read it, a day before the first that tried. Newest first,
+  at most 50; when there were more, it says so.
 - Triage as above; unsorted mail last under needs you.
 - Today's calendar from local midnight to midnight in your timezone (late-evening events included).
+  Where the clocks skip midnight (Santiago in September, Havana in March), the day starts at 01:00.
 - Tasks working, ready for review, needing input, or waiting on an approval.
 - `couldNotCheck`, in plain words: "Mail: not connected", "Calendar: couldn't be read just now",
   "Sorting: 2 of 9 emails couldn't be sorted (the model didn't answer), so they are under needs you",
-  the 50-message cap, an unknown timezone.
+  the 50-message cap, the 3-day reach, an unknown timezone.
 - A two- or three-sentence summary from the model (no greeting, no name, facts fenced as data), or
   a plain one written from the counts when there is no model or it fails. Demo mail is labelled
   "From the demo inbox:".
+- An empty list is never an all-clear for a source that wasn't read. When mail or the calendar
+  couldn't be read, the summary is the plain one and says so ("Your mail couldn't be read just now,
+  so this brief may be missing what needs you."), never "Nothing new needs you".
 
-A new brief emits `brief.ready`, adds the notification "Your brief is ready", and then suggests.
+Every build emits `brief.ready` and then suggests. Only the first brief for a date adds the
+notification "Your brief is ready"; "Check again" does not add another.
 
 ### Suggestions
 
 Up to five `suggested` tasks per brief from the mail the model said needs you: "Reply to Ana
 Pereira about Friday ship date", or "Look into “Payment failed” from Stripe" for senders that take
-no replies. Never a duplicate: an email or title that already has a task is skipped, whatever its
-state, except a task hidden more than 14 days ago. Unsorted mail is never suggested.
+no replies. Never a duplicate: an email that has had a task, in any state, is never suggested
+again, so Hide means that email is not offered again. A title is skipped while a task with it is
+open, or for 14 days after it was hidden, resolved or failed; after that, next month's "Invoice"
+from the same sender is offered again. Unsorted mail is never suggested.
 
 ### The inbox watch
 
@@ -169,7 +199,7 @@ its own status (migration `proactive.002_inbox_watch`).
 
 ## The triage eval
 
-`pnpm eval:triage` measures triage against 62 labelled emails. See
+`pnpm eval:triage` measures triage against 63 labelled emails. See
 [`evals/triage/README.md`](../../evals/triage/README.md).
 
 ## Credits

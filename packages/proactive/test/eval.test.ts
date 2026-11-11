@@ -1,41 +1,65 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   EVAL_NOW,
   EVAL_OWNER,
+  evalOwnerNames,
   pairResults,
   parseDataset,
   renderResults,
   score,
+  summaryShape,
   summaryTable,
   toTriageEmail,
 } from "../src/eval/dataset.ts";
+import { loadEvalEnv } from "../src/eval/env.ts";
 import {
   createOpenAICompatibleModel,
   DEFAULT_OPENROUTER_EVAL_MODEL,
   evalModelConfig,
 } from "../src/eval/model.ts";
-import { triageEmails } from "../src/triage.ts";
+import { triageEmails, triagePrompt } from "../src/triage.ts";
 import { fakeModel } from "./helpers.ts";
 
 const DATASET = fileURLToPath(new URL("../../../evals/triage/dataset.jsonl", import.meta.url));
 const set = parseDataset(readFileSync(DATASET, "utf8"));
 
 describe("the triage eval set", () => {
-  it("has 62 labelled messages, 27 that need the person and 35 that can wait", () => {
-    expect(set).toHaveLength(62);
-    expect(set.filter((row) => row.label === "needs_you")).toHaveLength(27);
+  it("has 63 labelled messages, 28 that need the person and 35 that can wait", () => {
+    expect(set).toHaveLength(63);
+    expect(set.filter((row) => row.label === "needs_you")).toHaveLength(28);
     expect(set.filter((row) => row.label === "can_wait")).toHaveLength(35);
   });
 
-  it("never names the inbox owner, and its reasons speak to the person as you", () => {
+  it("names the owner only where real mail does (n28), and its reasons speak to the person as you", () => {
     const text = readFileSync(DATASET, "utf8");
     expect(text.toLowerCase()).not.toContain("maya");
     for (const row of set) expect(row.why).not.toMatch(/\b(she|her|hers)\b/i);
     expect(
       set.every((row) => [...row.to, ...row.cc].some((a) => a.email === EVAL_OWNER) || row.id === "n26"),
     ).toBe(true);
+    // Only n28 arrives as real mail does, with a display name on the owner's address.
+    expect(evalOwnerNames(set)).toEqual(["Robin Hale", "Robin"]);
+    expect(set.filter((row) => /robin/i.test(JSON.stringify(row))).map((row) => row.id)).toEqual(["n28"]);
+    for (const row of set) expect(row.why).not.toMatch(/robin/i);
+  });
+
+  it("counts any reason that calls the person by that name, and the model never sees it", async () => {
+    const names = evalOwnerNames(set);
+    const model = fakeModel(({ system, prompt }) => {
+      expect(system).not.toContain("Robin Hale");
+      expect(prompt).not.toContain("Robin Hale");
+      return '{"verdict":"needs_you","reason":"Robin must sign off the glaze sample today."}';
+    });
+    const n28 = set.filter((row) => row.id === "n28");
+    const run = await triageEmails(n28.map(toTriageEmail), { now: EVAL_NOW, ownerEmail: EVAL_OWNER, model });
+    expect(run.items[0]?.reason).toBe("You must sign off the glaze sample today.");
+    expect(score(pairResults(n28, run), names).namedOwner).toBe(0);
+    const leaked = { ...run.items[0]!, reason: "Asks robin to sign off." };
+    expect(score([{ item: n28[0]!, result: leaked }], names).namedOwner).toBe(1);
   });
 
   it("refuses a malformed row with its line number", () => {
@@ -44,10 +68,11 @@ describe("the triage eval set", () => {
 
   it("rules alone settle 12 messages and get none wrong; the rest show as needs you", async () => {
     const run = await triageEmails(set.map(toTriageEmail), { now: EVAL_NOW, ownerEmail: EVAL_OWNER });
-    const metrics = score(pairResults(set, run));
+    const metrics = score(pairResults(set, run), evalOwnerNames(set));
     expect(metrics.byRules).toBe(12);
     expect(metrics.ruleWrong).toBe(0);
-    expect(metrics.unsorted).toBe(50);
+    expect(metrics.unsorted).toBe(51);
+    expect(metrics.namedOwner).toBe(0);
     expect(metrics.recall).toBe(1);
     // The two cases that list headers used to hide must reach the model.
     const n26 = run.items[set.findIndex((row) => row.id === "n26")];
@@ -64,7 +89,7 @@ describe("the triage eval set", () => {
     const run = await triageEmails(set.map(toTriageEmail), { now: EVAL_NOW, ownerEmail: EVAL_OWNER, model });
     const rows = pairResults(set, run);
     const metrics = score(rows);
-    expect(metrics).toMatchObject({ precision: 1, recall: 1, f2: 1, accuracy: 1, byModel: 50, byRules: 12 });
+    expect(metrics).toMatchObject({ precision: 1, recall: 1, f2: 1, accuracy: 1, byModel: 51, byRules: 12 });
     // The prompt never carries a person's name.
     expect(model.calls.every((call) => !/maya/i.test(call.system + call.prompt))).toBe(true);
 
@@ -74,7 +99,7 @@ describe("the triage eval set", () => {
       datasetSize: set.length,
     });
     expect(markdown).toMatch(
-      /\| Rules, then the model \| fake-model \| 100\.0% \(27 of 27\) +\| 100\.0% \(27 of 27\) +\|/,
+      /\| Rules, then the model \| fake-model \| 100\.0% \(28 of 28\) +\| 100\.0% \(28 of 28\) +\|/,
     );
     // Columns are padded like the repo's formatter pads them, so the file passes `biome check`.
     const lines = markdown.split("\n");
@@ -84,6 +109,21 @@ describe("the triage eval set", () => {
     expect(new Set(table.map((line) => line.length)).size).toBe(1);
     expect(markdown).toContain("### Disagreements\n\nNone.");
     expect(summaryTable(sections)).toContain("Rules, then the model");
+  });
+
+  it("can measure the summary a mail list carries: a snippet and no Cc", () => {
+    const n13 = set.find((row) => row.id === "n13")!;
+    const summary = summaryShape(n13);
+    expect(summary.body).toBeUndefined();
+    expect(summary.cc).toBeUndefined();
+    expect(summary.snippet).toBe(n13.body.slice(0, 200));
+    const context = { now: EVAL_NOW, ownerEmail: EVAL_OWNER };
+    expect(triagePrompt(toTriageEmail(n13), context).prompt).toContain(
+      "(The person is copied, not a direct recipient.)",
+    );
+    expect(triagePrompt(summary, context).prompt).toContain("(The person is not named as a recipient.)");
+    const long = set.find((row) => row.body.length > 200)!;
+    expect(triagePrompt(summaryShape(long), context).prompt).not.toContain(long.body);
   });
 
   it("weights recall over precision in F2", () => {
@@ -167,5 +207,34 @@ describe("the eval's model client", () => {
         OPENROUTER_API_KEY: "or",
       }),
     ).toEqual({ baseUrl: "http://localhost:11434/v1", model: "llama", via: "STEWARD_EVAL_BASE_URL" });
+  });
+});
+
+describe("the eval's settings files", () => {
+  it("reads STEWARD_ENV_FILE, then .env, as the server does; what is set already wins, and blanks count as unset", () => {
+    const root = mkdtempSync(join(tmpdir(), "steward-eval-env-"));
+    try {
+      mkdirSync(join(root, "conf"));
+      writeFileSync(join(root, "conf", "eval.env"), "STEWARD_EVAL_MODEL=from-extra\nOPENROUTER_API_KEY=\n");
+      writeFileSync(
+        join(root, ".env"),
+        "OPENROUTER_API_KEY=test-key-from-dotenv\nSTEWARD_EVAL_MODEL=from-dotenv\n",
+      );
+      const env: Record<string, string | undefined> = {
+        STEWARD_ENV_FILE: "conf/eval.env",
+        STEWARD_EVAL_BASE_URL: " ",
+      };
+      expect(loadEvalEnv(root, env)).toEqual([join(root, "conf", "eval.env"), join(root, ".env")]);
+      expect(env.STEWARD_EVAL_MODEL).toBe("from-extra");
+      expect(env.OPENROUTER_API_KEY).toBe("test-key-from-dotenv");
+      expect(evalModelConfig(env)).toMatchObject({ via: "OPENROUTER_API_KEY", model: "from-extra" });
+
+      const set: Record<string, string | undefined> = { OPENROUTER_API_KEY: "already-set" };
+      loadEvalEnv(root, set);
+      expect(set.OPENROUTER_API_KEY).toBe("already-set");
+      expect(loadEvalEnv(join(root, "conf"), {})).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

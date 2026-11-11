@@ -130,6 +130,57 @@ describe("BriefCard", () => {
     expect(screen.getByText("Subject 6")).toBeTruthy();
   });
 
+  it("never says nothing needs you when the mail could not be read", () => {
+    render(
+      <BriefCard
+        brief={brief({
+          needsYou: [],
+          canWait: [],
+          calendar: [],
+          couldNotCheck: ["Mail: couldn't be read just now", "Calendar: couldn't be read just now"],
+        })}
+      />,
+    );
+    const needs = screen.getByRole("region", { name: /Needs you/ });
+    expect(
+      within(needs).getByText("Your mail couldn't be read, so this may be missing something."),
+    ).toBeTruthy();
+    const today = screen.getByRole("region", { name: "Today" });
+    expect(
+      within(today).getByText("Your calendar couldn't be read, so this may be missing something."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/^Nothing/)).toBeNull();
+  });
+
+  it("says a source is not connected rather than empty", () => {
+    render(
+      <BriefCard
+        brief={brief({
+          needsYou: [],
+          canWait: [],
+          calendar: [],
+          couldNotCheck: ["Mail: not connected", "Calendar: not connected"],
+        })}
+      />,
+    );
+    expect(screen.getByText("Mail isn't connected, so nothing was sorted.")).toBeTruthy();
+    expect(screen.getByText("Your calendar isn't connected.")).toBeTruthy();
+  });
+
+  it("keeps the usual empty lines when only the mail cap was hit", () => {
+    render(
+      <BriefCard
+        brief={brief({
+          needsYou: [],
+          calendar: [],
+          couldNotCheck: ["Mail: only the newest 50 messages from the last day were sorted"],
+        })}
+      />,
+    );
+    expect(screen.getByText("Nothing in your mail needs you right now.")).toBeTruthy();
+    expect(screen.getByText("Nothing on your calendar today.")).toBeTruthy();
+  });
+
   it("says so when there is nothing at all", () => {
     render(<BriefCard brief={brief({ needsYou: [], canWait: [], calendar: [], couldNotCheck: [] })} />);
     expect(screen.getByText("Nothing new needs you, and nothing is on your calendar today.")).toBeTruthy();

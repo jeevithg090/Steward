@@ -5,14 +5,18 @@ code the server runs (`packages/proactive/src/triage.ts`) against a labelled set
 
 ## The set
 
-`dataset.jsonl` holds 62 invented emails to the owner of a small ceramics studio, on the morning of
-Thursday 22 October 2026. 27 need the owner and 35 can wait. Each row carries the label a careful
+`dataset.jsonl` holds 63 invented emails to the owner of a small ceramics studio, on the morning of
+Thursday 22 October 2026. 28 need the owner and 35 can wait. Each row carries the label a careful
 assistant should give and the reason a person would accept.
 
 It is adapted from OpenDuet's triage set (MIT, CopilotKit) with the labels unchanged. The inbox
-owner is never named: their address is `owner@marlowceramics.com`, greetings say "Hi", and the one
-message that asks the owner directly while copying them says "to the owner, copied here". The
-reasons speak to the person as "you", like Steward's own.
+owner is never named in the set's own words: their address is `owner@marlowceramics.com`, greetings
+say "Hi", and the one message that asks the owner directly while copying them says "to the owner,
+copied here". The reasons speak to the person as "you", like Steward's own.
+
+One message, `n28`, arrives the way real mail does: its To line gives the owner a display name and
+the greeting uses it. Steward never shows the model that name on the address lines, and takes it
+out of any reason the model writes, because the person never gave it to Steward.
 
 It includes the cases that go wrong in practice:
 
@@ -23,12 +27,13 @@ It includes the cases that go wrong in practice:
 - a thread where the owner is only copied but asked directly;
 - a request that says there is no rush;
 - a security report sent to the team's security@ group, which arrives with list headers in Forums;
-- a vendor's "rotate your access tokens" notice with an unsubscribe header, in Updates.
+- a vendor's "rotate your access tokens" notice with an unsubscribe header, in Updates;
+- a message that calls the owner by the name on their address.
 
 The last two were once settled as "can wait" by list headers alone. The rules now act on those
 headers only where the mail was also filed under Promotions or Social.
 
-Each row: `id` (`n01`–`n27`, `c01`–`c35`), `label`, `why`, `from`, `to`, `cc`, `subject`,
+Each row: `id` (`n01`–`n28`, `c01`–`c35`), `label`, `why`, `from`, `to`, `cc`, `subject`,
 `receivedAt`, `headers`, `labels` (Gmail label ids) and `body`. No real mail is used.
 
 ## The measures
@@ -39,34 +44,45 @@ Each row: `id` (`n01`–`n27`, `c01`–`c35`), `label`, `why`, `from`, `to`, `cc
   means something important slipped past.
 - **Recall matters more.** Missing a failed payment costs more than reading one extra line, so the
   headline score is **F2**, which weighs recall four times as much as precision.
-- **Accuracy** over all 62.
+- **Accuracy** over all 63.
 - **Decided by rules (wrong)**: rules must only settle what can wait, so "wrong" must be 0. The runner
   exits with an error otherwise, which makes it a useful CI check.
 - **Unsorted**: emails nobody could sort (no model, or the model failed). They count as flagged,
   because that is how they appear on screen.
+- **Named you**: reasons that use a name the mail gives the owner. It must be 0, and the runner
+  exits with an error otherwise.
 
 ## Running it
 
 ```sh
 pnpm eval:triage                 # rules only, then the model when one is configured
 pnpm eval:triage --rules-only    # rules only, no model calls
+pnpm eval:triage --summaries     # also the model on summaries only
+pnpm eval:triage --write         # rewrite results.md even when only the rules ran
 ```
 
-The model comes from the environment, first match wins:
+"Rules, then the model" is what Steward does: before the model sorts a message, triage reads it
+whole (body, Cc and headers), as each row here gives it. `--summaries` adds a run on what a mail
+list's summary carries (a 200-character snippet, no body, no Cc), which is what triage falls back to
+when the whole message can't be read.
+
+The model comes from the environment, then the file `STEWARD_ENV_FILE` names, then the repository's
+`.env`, as the server reads them; first match wins:
 
 | Variables                                                                      | Endpoint and model                                                            |
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | `STEWARD_EVAL_BASE_URL`, `STEWARD_EVAL_MODEL`, optional `STEWARD_EVAL_API_KEY` | Any OpenAI-compatible endpoint, such as Ollama at `http://localhost:11434/v1` |
 | `OPENROUTER_API_KEY`, optional `STEWARD_EVAL_MODEL`                            | OpenRouter, default `anthropic/claude-haiku-5.5`                              |
 
-It prints a table and writes `results.md` beside this file, with every verdict and a Disagreements
-section. Requests use temperature 0 and six at a time. Errors from the endpoint are reported by status
+It prints a table. When a model ran, it also writes `results.md` beside this file, with every
+verdict and a Disagreements section; a rules-only run leaves the committed file alone unless you pass
+`--write`. Requests use temperature 0 and six at a time. Errors from the endpoint are reported by status
 only, never by body, because results files get committed.
 
 ## Rules-only baseline
 
-With no model, the rules settle 12 of 62 and get none wrong, and everything else is shown as
-"needs you": recall 100%, precision 54%, F2 85.4%. That is Steward's honest behaviour with no
+With no model, the rules settle 12 of 63 and get none wrong, and everything else is shown as
+"needs you": recall 100%, precision 55%, F2 85.9%. That is Steward's honest behaviour with no
 model: nothing that matters is hidden, at the cost of a long list.
 
 ## What the numbers mean, and what they don't

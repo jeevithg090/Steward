@@ -1,6 +1,7 @@
 import { memoryDb } from "@steward/db";
 import type {
   CalendarEvent,
+  Email,
   EmailSummary,
   EventBus,
   LiveEvent,
@@ -87,6 +88,8 @@ export function subjectModel(): FakeModel {
 export interface FakeMail extends MailCalendar {
   eventQueries: { from: string; to: string }[];
   emailQueries: { query?: string; limit?: number }[];
+  /** Ids asked for with `getEmail`. */
+  fullReads: string[];
 }
 
 export function fakeMail(
@@ -99,24 +102,29 @@ export function fakeMail(
     label?: string;
     /** When true, a query returns nothing, like a connector that searches the query as text. */
     ignoresQuery?: boolean;
+    /** The whole message for `getEmail`. Without it, `getEmail` finds nothing. */
+    getEmail?: (id: string) => Promise<Email | undefined> | Email | undefined;
   } = {},
 ): FakeMail {
   const eventQueries: { from: string; to: string }[] = [];
   const emailQueries: { query?: string; limit?: number }[] = [];
+  const fullReads: string[] = [];
   return {
     id: "fake",
     label: opts.label ?? "Demo inbox",
     isDemo: opts.isDemo ?? false,
     eventQueries,
     emailQueries,
+    fullReads,
     async listEmails(query = {}) {
       emailQueries.push(query);
       if (opts.failEmails) throw new Error("mail is down, token=abc123");
       if (opts.ignoresQuery && query.query) return [];
       return (opts.emails ?? []).slice(0, query.limit ?? 100);
     },
-    async getEmail() {
-      return undefined;
+    async getEmail(id) {
+      fullReads.push(id);
+      return opts.getEmail ? await opts.getEmail(id) : undefined;
     },
     async sendEmail() {
       throw new Error("not in tests");

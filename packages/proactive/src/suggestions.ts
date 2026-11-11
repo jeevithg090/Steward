@@ -3,8 +3,21 @@ import { TASK_STATES } from "./tasks.ts";
 
 /** At most this many suggestions come out of one brief. */
 export const MAX_SUGGESTIONS_PER_BRIEF = 5;
-/** "Hide has to mean hide": a hidden suggestion is not offered again for this long. */
+/**
+ * A closed task (hidden, resolved or failed) keeps its title from being suggested again for this
+ * long, so "Hide" holds for a follow-up with the same subject; after that, next month's invoice from
+ * the same sender is offered again. An email that has had any task is never suggested again.
+ */
 export const HIDDEN_FOR_DAYS = 14;
+
+/** States where the task is still in hand: its title is never suggested twice. */
+const OPEN_STATES: ReadonlySet<Task["state"]> = new Set([
+  "suggested",
+  "working",
+  "needs_you",
+  "needs_input",
+  "ready_for_review",
+]);
 
 const SUBJECT_MAX = 100;
 
@@ -48,17 +61,19 @@ export function normaliseTitle(title: string): string {
  * the Tasks page. Only mail the model sorted is suggested: "couldn't sort this one" might be spam,
  * and offering to reply to it would be a guess.
  *
- * Never duplicates: a message or title that already has a task is skipped, whatever state that
- * task is in, except a task hidden more than 14 days ago, which may be offered again.
+ * Never duplicates: an email that already has a task, in any state, is never suggested again (so
+ * Hide means this email is not offered again). A title is skipped while a task with it is open, or
+ * was closed in the last 14 days; after that the same title, for a new email, may be offered.
  */
 export function suggestFromBrief(brief: Brief, deps: { tasks: TaskStore; now: () => Date }): Task[] {
   const cutoff = deps.now().getTime() - HIDDEN_FOR_DAYS * 24 * 3600_000;
   const takenEmails = new Set<string>();
   const takenTitles = new Set<string>();
   for (const task of deps.tasks.list({ state: [...TASK_STATES], limit: 5000 })) {
-    if (task.state === "hidden" && Date.parse(task.updatedAt) < cutoff) continue;
     if (task.emailId) takenEmails.add(task.emailId);
-    takenTitles.add(normaliseTitle(task.title));
+    if (OPEN_STATES.has(task.state) || !(Date.parse(task.updatedAt) < cutoff)) {
+      takenTitles.add(normaliseTitle(task.title));
+    }
   }
 
   const created: Task[] = [];

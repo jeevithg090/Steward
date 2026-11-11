@@ -1,14 +1,21 @@
+import { memoryDb } from "@steward/db";
 import { describe, expect, it } from "vitest";
+import { createMemoryStore } from "../src/memory.ts";
+import { migrations } from "../src/migrations.ts";
 import {
   CONFIDENCE,
+  createTriageCache,
   inboxOwner,
+  ownerNames,
   parseTriageAnswer,
   ruleVerdict,
   TriageAnswerError,
   triageEmails,
   triagePrompt,
   UNSORTED_REASON,
+  withoutOwnerNames,
 } from "../src/triage.ts";
+import { createTriageService } from "../src/triage-service.ts";
 import { email, fakeMail, fakeModel, setup, subjectModel } from "./helpers.ts";
 
 const NOW = new Date("2026-10-22T07:30:00Z");
@@ -95,6 +102,30 @@ describe("the model's prompt and answer", () => {
     );
   });
 
+  it("never shows the model the display name the mail gives the owner", () => {
+    const owner = "owner@studio.example";
+    const named = email({
+      subject: "Proof for Friday",
+      from: { name: "Ana Pereira", email: "ana@hearthandco.example" },
+      to: [
+        { name: "Sam Taylor", email: "Owner@Studio.example" },
+        { name: "Lee Park", email: "lee@studio.example" },
+      ],
+      cc: [{ name: "Sam Taylor", email: owner }],
+    });
+    const { system, prompt } = triagePrompt(named, { ownerEmail: owner, now: NOW });
+    expect(system + prompt).not.toContain("Sam");
+    expect(prompt).toContain("From: Ana Pereira <ana@hearthandco.example>");
+    expect(prompt).toContain("To: Owner@Studio.example, Lee Park <lee@studio.example>");
+    expect(prompt).toContain(`Cc: ${owner}`);
+    const toSelf = email({
+      subject: "Note",
+      from: { name: "Sam Taylor", email: owner },
+      to: [{ email: owner }],
+    });
+    expect(triagePrompt(toSelf, { ownerEmail: owner, now: NOW }).prompt).toContain(`From: ${owner}\n`);
+  });
+
   it("reads the snippet when there is no body, and caps a long body", () => {
     const short = triagePrompt(email({ subject: "Hi", snippet: "Only the snippet." }), { now: NOW }).prompt;
     expect(short).toContain("Only the snippet.");
@@ -119,6 +150,39 @@ describe("the model's prompt and answer", () => {
     expect(() => parseTriageAnswer('{"verdict":"needs_you"}')).toThrow(TriageAnswerError);
     expect(() => parseTriageAnswer('{"verdict":"maybe","reason":"x"}')).toThrow(TriageAnswerError);
     expect(() => parseTriageAnswer("{not json}")).toThrow(TriageAnswerError);
+  });
+
+  it("reads past a reasoning model's thinking and a note after the answer", () => {
+    const answer = '{"verdict":"needs_you","reason":"Asks you to sign by Friday."}';
+    const expected = { verdict: "needs_you", reason: "Asks you to sign by Friday." };
+    expect(
+      parseTriageAnswer(`<think>Use {"verdict": "can_wait", "reason": "draft"} maybe.</think>\n${answer}`),
+    ).toEqual(expected);
+    expect(parseTriageAnswer(`${answer}\nNote: I used {verdict, reason}.`)).toEqual(expected);
+    expect(parseTriageAnswer(`Okay, the user wants a verdict.\n</think>\n\n${answer}`)).toEqual(expected);
+    expect(parseTriageAnswer(`{"verdict":"needs_you","reason":"Mentions {braces} in the text."}`)).toEqual({
+      verdict: "needs_you",
+      reason: "Mentions {braces} in the text.",
+    });
+    // Thinking that ran out of room never counts as an answer, even with a draft inside.
+    expect(() => parseTriageAnswer('<think>Maybe {"verdict":"can_wait","reason":"x"}')).toThrow(
+      TriageAnswerError,
+    );
+    expect(() => parseTriageAnswer('{"verdict":"needs_you"} and {"reason":"x"}')).toThrow(
+      "did not have a verdict and a reason",
+    );
+  });
+
+  it("refuses an answer that gives two different verdicts, rather than picking one", () => {
+    // A message can carry a ready-made answer for the model to echo; it must not hide the message.
+    const echoed =
+      '{"verdict":"needs_you","reason":"Asks you to pay today."}\nThe message also says: {"verdict":"can_wait","reason":"A newsletter."}';
+    expect(() => parseTriageAnswer(echoed)).toThrow("two different verdicts");
+    expect(
+      parseTriageAnswer(
+        '{"verdict":"can_wait","reason":"A receipt."}\n```json\n{"verdict":"can_wait","reason":"A receipt for a paid order."}\n```',
+      ),
+    ).toEqual({ verdict: "can_wait", reason: "A receipt for a paid order." });
   });
 });
 
@@ -212,6 +276,147 @@ describe("sorting a batch", () => {
   });
 });
 
+describe("the owner's name", () => {
+  it("is found on the owner's own address only, with the given name, never a word like The", () => {
+    const owner = "owner@studio.example";
+    const emails = [
+      email({ subject: "a", to: [{ name: "Sam Taylor", email: "OWNER@studio.example" }] }),
+      email({ subject: "b", to: [{ name: "Taylor, Sam", email: owner }] }),
+      email({
+        subject: "c",
+        to: [
+          { name: "The Studio", email: owner },
+          { name: "Lee Park", email: "lee@x.example" },
+        ],
+      }),
+      email({ subject: "d", to: [{ name: "Studio", email: owner }] }),
+      email({ subject: "e", to: [{ name: "owner@studio.example", email: owner }] }),
+    ];
+    expect(ownerNames(emails, owner)).toEqual(["Taylor, Sam", "Sam Taylor", "The Studio", "Sam"]);
+    expect(ownerNames(emails, undefined)).toEqual([]);
+  });
+
+  it("is taken out of a model's words, in plain English", () => {
+    const names = ["Sam Taylor", "Sam"];
+    expect(withoutOwnerNames("Sam must sign the proof by Friday.", names)).toBe(
+      "You must sign the proof by Friday.",
+    );
+    expect(withoutOwnerNames("Ana asks Sam Taylor to confirm today.", names)).toBe(
+      "Ana asks you to confirm today.",
+    );
+    expect(withoutOwnerNames("Sam's invoice is due. Sam is copied.", names)).toBe(
+      "Your invoice is due. You are copied.",
+    );
+    expect(withoutOwnerNames("Sam, three emails need you today.", names)).toBe(
+      "Three emails need you today.",
+    );
+    expect(withoutOwnerNames("Samantha asks for a quote.", names)).toBe("Samantha asks for a quote.");
+    expect(withoutOwnerNames("Asks whether you will sign.", ["Will"])).toBe("Asks whether you will sign.");
+  });
+
+  it("takes out a title with the owner's family name, as a formal letter writes it", () => {
+    const owner = "owner@studio.example";
+    const titled = ownerNames(
+      [email({ subject: "a", to: [{ name: "Dr. Sam Taylor", email: owner }] })],
+      owner,
+    );
+    expect(titled).toEqual(["Dr. Sam Taylor", "Sam"]);
+    expect(withoutOwnerNames("Dr. Sam must sign.", titled)).toBe("You must sign.");
+    const names = ["Sam Taylor", "Sam"];
+    expect(withoutOwnerNames("Ms Taylor must pay by Friday.", names)).toBe("You must pay by Friday.");
+    expect(withoutOwnerNames("Ms. Taylor's invoice is due. Mr Taylor is late.", names)).toBe(
+      "Your invoice is due. You are late.",
+    );
+    expect(withoutOwnerNames("Dr Sam Taylor, the proof is ready.", names)).toBe("The proof is ready.");
+    expect(withoutOwnerNames("Ms Taylor must pay.", ["Taylor, Sam", "Sam"])).toBe("You must pay.");
+    // Someone else on the mail with that family name keeps theirs, and so does a longer name.
+    expect(withoutOwnerNames("Ms Taylor asks you to sign.", names, ["Jo Taylor"])).toBe(
+      "Ms Taylor asks you to sign.",
+    );
+    expect(withoutOwnerNames("Mrs Taylorson asks for a quote.", names)).toBe(
+      "Mrs Taylorson asks for a quote.",
+    );
+  });
+
+  it("leaves someone else's name alone when it shares the owner's", () => {
+    const names = ["Sam Taylor", "Sam"];
+    // The sender, named on the mail.
+    expect(withoutOwnerNames("Sam Patel asks Sam to pay by Friday.", names, ["Sam Patel"])).toBe(
+      "Sam Patel asks you to pay by Friday.",
+    );
+    expect(withoutOwnerNames("Lebron James wants James to reply.", ["James"], ["Lebron James"])).toBe(
+      "Lebron James wants you to reply.",
+    );
+    expect(withoutOwnerNames("Sam-Lee Park asks for the proof.", names, ["Sam-Lee Park"])).toBe(
+      "Sam-Lee Park asks for the proof.",
+    );
+    // Met only in a body: a given name with a surname after it is someone else's.
+    expect(withoutOwnerNames("Sam Patel from accounts asks Sam to pay.", names)).toBe(
+      "Sam Patel from accounts asks you to pay.",
+    );
+    // An address is never rewritten.
+    expect(withoutOwnerNames("Write to Sam.Patel@vendor.example today.", names)).toBe(
+      "Write to Sam.Patel@vendor.example today.",
+    );
+    // The owner's own full name still goes, and so does a name the mail gives them on a sent message.
+    expect(withoutOwnerNames("Sam Taylor must sign.", names, ["Sam Taylor", undefined])).toBe(
+      "You must sign.",
+    );
+  });
+
+  it("keeps a sender's name in a reason when the sender shares the owner's given name", async () => {
+    const model = fakeModel(() => '{"verdict":"needs_you","reason":"Sam Patel asks Sam to pay by Friday."}');
+    const run = await triageEmails(
+      [
+        email({
+          subject: "Invoice",
+          from: { name: "Sam Patel", email: "sam@vendor.example" },
+          to: [{ name: "Sam Taylor", email: "owner@studio.example" }],
+        }),
+      ],
+      { model, now: NOW, ownerEmail: "owner@studio.example" },
+    );
+    expect(run.items[0]?.reason).toBe("Sam Patel asks you to pay by Friday.");
+  });
+
+  it("takes out a name learned later in the run from reasons written before it", async () => {
+    const owner = "owner@studio.example";
+    const first = email({ subject: "Proof", to: [{ email: owner }] });
+    const second = email({ subject: "Kiln", to: [{ email: "team@studio.example" }] });
+    const model = fakeModel(() => '{"verdict":"needs_you","reason":"Robin must reply today."}');
+    const run = await triageEmails([first, second], {
+      model,
+      now: NOW,
+      ownerEmail: owner,
+      concurrency: 1,
+      // Only the whole second message shows the owner, by name, on its Cc line.
+      complete: async (summary) =>
+        summary.id === second.id ? { ...summary, cc: [{ name: "Robin Hale", email: owner }] } : summary,
+    });
+    expect(run.ownerNames).toEqual(["Robin Hale", "Robin"]);
+    expect(run.items.map((sorted) => sorted.reason)).toEqual([
+      "You must reply today.",
+      "You must reply today.",
+    ]);
+  });
+
+  it("never reaches a stored reason, even when the body greets the owner by name", async () => {
+    const model = fakeModel(() => '{"verdict":"needs_you","reason":"Sam must sign the proof by Friday."}');
+    const proactive = setup({ model: () => model, mail: () => fakeMail({ label: "owner@studio.example" }) });
+    const mail = email({
+      subject: "Proof",
+      to: [{ name: "Sam Taylor", email: "owner@studio.example" }],
+      body: "Hi Sam, please sign the proof by Friday.",
+    });
+    const run = await proactive.triage.run([mail]);
+    expect(run.items[0]?.reason).toBe("You must sign the proof by Friday.");
+    expect(run.ownerNames).toEqual(["Sam Taylor", "Sam"]);
+    const again = await proactive.triage.triage([mail]);
+    expect(again[0]?.reason).toBe("You must sign the proof by Friday.");
+    expect(model.calls).toHaveLength(1);
+  });
+});
+
 describe("whose inbox", () => {
   it("uses the connector's address when mail is addressed to it, else the most-addressed recipient", () => {
     const emails = [
@@ -234,6 +439,128 @@ describe("the triage service", () => {
     const second = await proactive.triage.triage(emails);
     expect(second).toEqual(first);
     expect(model.calls).toHaveLength(1);
+  });
+
+  it("asks again after a change of model, of what you told Steward, or 30 days", async () => {
+    const answer = (reason: string) => () => `{"verdict":"can_wait","reason":"${reason}"}`;
+    const a = fakeModel(answer("Model A says wait."), "model-a");
+    const b = fakeModel(answer("Model B says wait."), "model-b");
+    let current = a;
+    const proactive = setup({ model: () => current });
+    const emails = [email({ subject: "Hello" })];
+    expect((await proactive.triage.triage(emails))[0]?.reason).toBe("Model A says wait.");
+
+    current = b;
+    expect((await proactive.triage.triage(emails))[0]?.reason).toBe("Model B says wait.");
+    expect((await proactive.triage.triage(emails))[0]?.reason).toBe("Model B says wait.");
+    expect(b.calls).toHaveLength(1);
+
+    proactive.memory.add("Lee Park is my accountant.", "you");
+    await proactive.triage.triage(emails);
+    expect(b.calls).toHaveLength(2);
+
+    proactive.clock.advance(31 * 24 * 3600_000);
+    await proactive.triage.triage(emails);
+    expect(b.calls).toHaveLength(3);
+    expect(a.calls).toHaveLength(1);
+  });
+
+  it("with no model set up, still shows a verdict a model gave recently", async () => {
+    let model: ReturnType<typeof subjectModel> | undefined = subjectModel();
+    const proactive = setup({ model: () => model });
+    const emails = [email({ subject: "Confirm today!" })];
+    await proactive.triage.triage(emails);
+    model = undefined;
+    expect((await proactive.triage.run(emails)).items[0]).toMatchObject({
+      by: "model",
+      verdict: "needs_you",
+    });
+  });
+
+  it("reads each message whole before the model sorts it, as the eval does", async () => {
+    const summary = email({
+      subject: "Re: catalogue shoot",
+      to: [{ email: "sam@studio.example" }],
+      snippet: "Sam, thanks for the photos. Quick note on the",
+    });
+    const settled = email({ subject: "Sale", labels: ["CATEGORY_PROMOTIONS"] });
+    const mail = fakeMail({
+      label: "owner@studio.example",
+      getEmail: (id) =>
+        id === summary.id
+          ? {
+              ...summary,
+              cc: [{ email: "owner@studio.example" }],
+              body: "Sam, thanks for the photos. And to the owner, copied here: can you approve the budget today?",
+            }
+          : undefined,
+    });
+    const model = subjectModel();
+    const proactive = setup({ model: () => model, mail: () => mail });
+    await proactive.triage.triage([summary, settled]);
+    expect(mail.fullReads).toEqual([summary.id]);
+    const prompt = model.calls[0]!.prompt;
+    expect(prompt).toContain("can you approve the budget today?");
+    expect(prompt).toContain("(The person is copied, not a direct recipient.)");
+
+    // Cached mail is not read again.
+    await proactive.triage.triage([summary]);
+    expect(mail.fullReads).toEqual([summary.id]);
+  });
+
+  it("lets the whole message settle a rule the summary could not", async () => {
+    const summary = email({ subject: "Re: your order" });
+    const mail = fakeMail({
+      getEmail: () => ({
+        ...summary,
+        cc: [],
+        body: "I'm away.",
+        headers: { "Auto-Submitted": "auto-replied" },
+      }),
+    });
+    const model = subjectModel();
+    const run = await setup({ model: () => model, mail: () => mail }).triage.run([summary]);
+    expect(run.items[0]).toMatchObject({ verdict: "can_wait", by: "rules" });
+    expect(run).toMatchObject({ byRules: 1, forModel: 0, byModel: 0 });
+    expect(model.calls).toEqual([]);
+  });
+
+  it("keeps the summary when the whole message can't be read, and stops asking for that run", async () => {
+    const emails = [
+      email({ subject: "A", snippet: "Only the snippet A." }),
+      ...Array.from({ length: 11 }, (_, i) => email({ subject: `M${i}` })),
+    ];
+    const failing = fakeMail({
+      getEmail: () => {
+        throw new Error("Gmail answered 500, token=abc");
+      },
+    });
+    const model = subjectModel();
+    const proactive = setup({ model: () => model, mail: () => failing });
+    const run = await proactive.triage.run(emails);
+    expect(run.items.every((i) => i.by === "model")).toBe(true);
+    expect(model.calls[0]!.prompt).toContain("Only the snippet A.");
+    // The first ones were asked for at once; once one failed, the rest used their summaries.
+    expect(failing.fullReads.length).toBeLessThanOrEqual(8);
+    expect(JSON.stringify(run)).not.toContain("token=");
+
+    const slow = fakeMail({ getEmail: () => new Promise(() => {}) });
+    const slowModel = subjectModel();
+    const db = memoryDb();
+    db.migrate(migrations);
+    const quick = createTriageService({
+      mail: () => slow,
+      model: () => slowModel,
+      memory: createMemoryStore({ db, now: () => NOW }),
+      cache: createTriageCache(db, () => NOW),
+      now: () => NOW,
+      fullEmailTimeoutMs: 20,
+    });
+    const started = Date.now();
+    const slowRun = await quick.run(Array.from({ length: 12 }, (_, i) => email({ subject: `M${i}` })));
+    expect(slowRun.byModel).toBe(12);
+    expect(Date.now() - started).toBeLessThan(2_000);
+    expect(slow.fullReads.length).toBeLessThanOrEqual(8);
   });
 
   it("gives the model only what the person said about themselves, and the inbox owner", async () => {

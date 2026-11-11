@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BRIEF_MAIL_CAP, cleanSummary, plainSummary, SUMMARY_SYSTEM, summaryPrompt } from "../src/brief.ts";
-import { UNSORTED_REASON } from "../src/triage.ts";
+import { localDayBounds } from "../src/time.ts";
+import { type TriageEmail, UNSORTED_REASON } from "../src/triage.ts";
 import { email, event, fakeMail, fakeModel, setup, subjectModel } from "./helpers.ts";
 
 const LA = "America/Los_Angeles";
@@ -68,6 +69,96 @@ describe("the morning brief", () => {
     expect(p.bus.of("brief.ready")).toHaveLength(2);
   });
 
+  it("notifies once per date, however often it is made again", async () => {
+    const mail = fakeMail({
+      emails: [email({ subject: "Confirm today!", receivedAt: "2026-10-22T07:00:00Z" })],
+    });
+    const p = setup({ mail: () => mail, model: () => subjectModel() });
+    await p.brief.generate();
+    await p.brief.generate({ force: true });
+    await p.brief.generate({ force: true });
+    expect(p.notifications.list().filter((n) => n.title === "Your brief is ready")).toHaveLength(1);
+    expect(p.bus.of("brief.ready")).toHaveLength(3);
+  });
+
+  it("goes on for a caller still waiting when another caller gives up", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const model = fakeModel(async ({ prompt }) => {
+      await gate;
+      return /Subject: (.*)/.exec(prompt)?.[1]?.includes("!")
+        ? '{"verdict":"needs_you","reason":"Asks you to confirm today."}'
+        : '{"verdict":"can_wait","reason":"Nothing to do."}';
+    });
+    const mail = fakeMail({
+      emails: [email({ subject: "Confirm today!", receivedAt: "2026-10-22T07:00:00Z" })],
+    });
+    const p = setup({ mail: () => mail, model: () => model });
+
+    // A browser asks, then the worker (no signal) joins, then the browser goes away.
+    const browser = new AbortController();
+    const fromBrowser = p.brief.generate({ signal: browser.signal });
+    const fromWorker = p.brief.generate();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    browser.abort();
+    await expect(fromBrowser).rejects.toMatchObject({ name: "AbortError" });
+    release();
+    const brief = await fromWorker;
+    expect(brief.needsYou.map((i) => i.subject)).toEqual(["Confirm today!"]);
+    expect(p.brief.get(brief.date)?.id).toBe(brief.id);
+  });
+
+  it("stops a shared build only when every caller has given up", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const model = fakeModel(async () => {
+      await gate;
+      return '{"verdict":"can_wait","reason":"Nothing to do."}';
+    });
+    const mail = fakeMail({ emails: [email({ subject: "Quote?", receivedAt: "2026-10-22T07:00:00Z" })] });
+    const p = setup({ mail: () => mail, model: () => model });
+
+    const one = new AbortController();
+    const two = new AbortController();
+    const first = p.brief.generate({ signal: one.signal });
+    const second = p.brief.generate({ signal: two.signal });
+    one.abort();
+    await expect(first).rejects.toMatchObject({ name: "AbortError" });
+    release();
+    expect((await second).canWait).toHaveLength(1);
+
+    const three = new AbortController();
+    const four = new AbortController();
+    const third = p.brief.generate({ force: true, signal: three.signal });
+    const fourth = p.brief.generate({ force: true, signal: four.signal });
+    const before = p.brief.latest()?.id;
+    three.abort();
+    four.abort();
+    await expect(third).rejects.toMatchObject({ name: "AbortError" });
+    await expect(fourth).rejects.toMatchObject({ name: "AbortError" });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(p.brief.latest()?.id).toBe(before);
+    // The next caller starts afresh rather than joining the stopped build.
+    expect((await p.brief.generate({ force: true })).id).not.toBe(before);
+  });
+
+  it("makes a brief for today or an earlier day, and never shows a later one as the latest", async () => {
+    const p = setup({ at: "2026-10-22T08:00:00Z" });
+    await expect(p.brief.generate({ date: "2026-10-23" })).rejects.toMatchObject({
+      status: 400,
+      message: "A brief can be made for today or an earlier day.",
+    });
+    const today = await p.brief.generate();
+    // A brief stored for a later date (as an older Steward allowed) is not "the latest".
+    p.db.run("INSERT INTO proactive_briefs (date, id, body, created_at) VALUES (?, ?, ?, ?)", [
+      "2030-01-01",
+      "brf_future",
+      JSON.stringify({ ...today, id: "brf_future", date: "2030-01-01" }),
+      "2026-10-22T08:00:00Z",
+    ]);
+    expect(p.brief.latest()?.id).toBe(today.id);
+  });
+
   it("says mail and calendar are not connected, and says how to connect them", async () => {
     const model = subjectModel();
     const p = setup({ model: () => model });
@@ -85,12 +176,78 @@ describe("the morning brief", () => {
     const brief = await setup({ mail: () => mail }).brief.generate();
     expect(brief.couldNotCheck).toEqual(["Calendar: couldn't be read just now"]);
     expect(JSON.stringify(brief)).not.toContain("Bearer");
+    expect(brief.summary).toBe("No new mail in the last day. Your calendar couldn't be read just now.");
   });
 
-  it("names mail it could not read", async () => {
-    const brief = await setup({ mail: () => fakeMail({ failEmails: true }) }).brief.generate();
+  it("names mail it could not read, and never calls that an all-clear", async () => {
+    const mail = fakeMail({
+      failEmails: true,
+      events: [event({ title: "Kiln check", start: "2026-10-22T09:00:00Z", end: "2026-10-22T09:30:00Z" })],
+    });
+    const brief = await setup({ mail: () => mail }).brief.generate();
     expect(brief.couldNotCheck).toEqual(["Mail: couldn't be read just now"]);
     expect(JSON.stringify(brief)).not.toContain("token=");
+    expect(brief.summary).toBe(
+      "Your mail couldn't be read just now, so this brief may be missing what needs you. You have 1 thing on your calendar today, starting with “Kiln check” at 09:00.",
+    );
+    const empty = await setup({ mail: () => fakeMail({ failEmails: true }) }).brief.generate();
+    expect(empty.summary).toBe(
+      "Your mail couldn't be read just now, so this brief may be missing what needs you. Nothing is on your calendar today.",
+    );
+  });
+
+  it("says so when neither mail nor calendar could be read", async () => {
+    const mail = fakeMail({ failEmails: true, failEvents: true });
+    const brief = await setup({ mail: () => mail }).brief.generate();
+    expect(brief.couldNotCheck).toEqual([
+      "Mail: couldn't be read just now",
+      "Calendar: couldn't be read just now",
+    ]);
+    expect(brief.summary).toBe(
+      "Your mail and calendar couldn't be read just now, so this brief may be missing what needs you.",
+    );
+    expect(brief.summary).not.toMatch(/nothing/i);
+  });
+
+  it("writes the summary itself, not with the model, when a source could not be read", async () => {
+    const model = fakeModel(() => "Nothing needs you today and your day is clear.");
+    for (const fail of [{ failEmails: true }, { failEvents: true }]) {
+      model.calls.length = 0;
+      const mail = fakeMail({
+        ...fail,
+        emails: [email({ subject: "Sale", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-22T07:00:00Z" })],
+      });
+      const brief = await setup({ mail: () => mail, model: () => model }).brief.generate();
+      expect(brief.summary).toContain("couldn't be read just now");
+      expect(model.calls.filter((call) => call.system === SUMMARY_SYSTEM)).toEqual([]);
+    }
+  });
+
+  it("keeps a failed calendar read in a full summary", () => {
+    const item = {
+      emailId: "m1",
+      subject: "Quote",
+      from: { email: "ana@example.com" },
+      verdict: "needs_you" as const,
+      reason: "Asks for a quote.",
+      confidence: 0.75,
+      by: "model" as const,
+    };
+    const summary = plainSummary({
+      date: "2026-10-22",
+      timeZone: "UTC",
+      mailConnected: true,
+      mailRead: true,
+      calendarRead: false,
+      needsYou: [item, { ...item, emailId: "m2", by: "rules", confidence: 0 }],
+      canWait: [{ ...item, emailId: "m3", verdict: "can_wait" }],
+      calendar: [],
+      tasks: [],
+      couldNotCheck: ["Calendar: couldn't be read just now"],
+    });
+    expect(summary).toBe(
+      "One email needs you, starting with ana@example.com about “Quote”. 1 email couldn't be sorted, so it is under needs you. Your calendar couldn't be read just now.",
+    );
   });
 
   it("without a model, lists unsorted mail under needs you and says why", async () => {
@@ -164,6 +321,131 @@ describe("the morning brief", () => {
     expect(brief2.couldNotCheck).toEqual([]);
   });
 
+  it("reads mail since the last brief, so a late morning leaves no gap", async () => {
+    const mail = fakeMail({
+      emails: [
+        email({ subject: "After lunch", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-22T12:00:00Z" }),
+        email({ subject: "Morning", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-21T10:00:00Z" }),
+        email({
+          subject: "Before the last brief",
+          labels: ["CATEGORY_SOCIAL"],
+          receivedAt: "2026-10-21T07:00:00Z",
+        }),
+      ],
+    });
+    const p = setup({ at: "2026-10-21T08:00:00Z", mail: () => mail });
+    await p.brief.generate();
+    // The server slept through 08:00; today's brief is made at 15:00.
+    p.clock.set("2026-10-22T15:00:00Z");
+    mail.emailQueries.length = 0;
+    const brief = await p.brief.generate();
+    expect(mail.emailQueries[0]).toEqual({ query: "in:inbox newer_than:2d", limit: BRIEF_MAIL_CAP + 1 });
+    expect(brief.canWait.map((i) => i.subject)).toEqual(["After lunch", "Morning"]);
+    expect(brief.couldNotCheck).toEqual([]);
+    // A second brief the same day still reads at least the last day.
+    expect((await p.brief.generate({ force: true })).canWait).toHaveLength(2);
+  });
+
+  it("reads back past a brief that couldn't read the mail, so that day's mail is not lost", async () => {
+    const inbox: TriageEmail[] = [];
+    const working = fakeMail({ emails: inbox });
+    const failing = fakeMail({ failEmails: true });
+    let current = working;
+    const p = setup({ at: "2026-10-20T08:00:00Z", mail: () => current });
+    await p.brief.generate();
+    inbox.push(
+      email({ subject: "Tuesday evening", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-20T20:00:00Z" }),
+    );
+    current = failing;
+    p.clock.set("2026-10-21T08:00:00Z");
+    expect((await p.brief.generate()).couldNotCheck).toEqual(["Mail: couldn't be read just now"]);
+    current = working;
+    p.clock.set("2026-10-22T08:00:00Z");
+    const brief = await p.brief.generate();
+    expect(working.emailQueries.at(-1)).toEqual({
+      query: "in:inbox newer_than:2d",
+      limit: BRIEF_MAIL_CAP + 1,
+    });
+    expect(brief.canWait.map((i) => i.subject)).toEqual(["Tuesday evening"]);
+    expect(brief.couldNotCheck).toEqual([]);
+  });
+
+  it("reads the day a first brief missed when that brief couldn't read the mail", async () => {
+    const working = fakeMail({
+      emails: [
+        email({ subject: "Monday evening", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-19T20:00:00Z" }),
+      ],
+    });
+    let current = fakeMail({ failEmails: true });
+    const p = setup({ at: "2026-10-20T08:00:00Z", mail: () => current });
+    expect((await p.brief.generate()).couldNotCheck).toEqual(["Mail: couldn't be read just now"]);
+    current = working;
+    p.clock.set("2026-10-21T08:00:00Z");
+    const brief = await p.brief.generate();
+    expect(brief.canWait.map((i) => i.subject)).toEqual(["Monday evening"]);
+    expect(brief.couldNotCheck).toEqual([]);
+  });
+
+  it("says the 3-day reach was hit when every recent brief couldn't read the mail", async () => {
+    let current = fakeMail({ failEmails: true });
+    const p = setup({ at: "2026-10-18T08:00:00Z", mail: () => current });
+    for (const day of ["18", "19", "20", "21"]) {
+      p.clock.set(`2026-10-${day}T08:00:00Z`);
+      await p.brief.generate();
+    }
+    current = fakeMail({});
+    p.clock.set("2026-10-22T08:00:00Z");
+    expect((await p.brief.generate()).couldNotCheck).toEqual([
+      "Mail: only the last 3 days were checked; the last brief to read it was longer ago than that",
+    ]);
+  });
+
+  it("covers a weekend away, and says so when the last brief was more than three days ago", async () => {
+    const saturday = email({
+      subject: "Saturday",
+      labels: ["CATEGORY_SOCIAL"],
+      receivedAt: "2026-10-24T11:00:00Z",
+    });
+    const mail = fakeMail({ emails: [saturday] });
+    const p = setup({ at: "2026-10-23T09:00:00Z", mail: () => mail });
+    await p.brief.generate(); // Friday
+    p.clock.set("2026-10-26T08:00:00Z"); // Monday
+    const monday = await p.brief.generate();
+    expect(monday.canWait.map((i) => i.subject)).toEqual(["Saturday"]);
+    expect(monday.couldNotCheck).toEqual([]);
+
+    const away = setup({
+      at: "2026-10-20T08:00:00Z",
+      mail: () =>
+        fakeMail({
+          emails: [
+            saturday,
+            email({ subject: "Wednesday", labels: ["CATEGORY_SOCIAL"], receivedAt: "2026-10-21T11:00:00Z" }),
+          ],
+        }),
+    });
+    await away.brief.generate();
+    away.clock.set("2026-10-25T08:00:00Z");
+    const back = await away.brief.generate();
+    expect(back.canWait.map((i) => i.subject)).toEqual(["Saturday"]);
+    expect(back.couldNotCheck).toEqual([
+      "Mail: only the last 3 days were checked; the last brief to read it was longer ago than that",
+    ]);
+  });
+
+  it("says no new mail since the last brief when there was none", async () => {
+    const events = [
+      event({ title: "Kiln check", start: "2026-10-22T16:00:00Z", end: "2026-10-22T16:30:00Z" }),
+    ];
+    const p = setup({ at: "2026-10-21T08:00:00Z", mail: () => fakeMail({ events }) });
+    await p.brief.generate();
+    p.clock.set("2026-10-22T15:00:00Z");
+    const brief = await p.brief.generate();
+    expect(brief.summary).toBe(
+      "No new mail since the last brief. You have 1 thing on your calendar today, starting with “Kiln check” at 16:00.",
+    );
+  });
+
   it("asks again without a query when the connector reads the query as plain text", async () => {
     const mail = fakeMail({
       ignoresQuery: true,
@@ -211,6 +493,53 @@ describe("the morning brief", () => {
     expect(brief.couldNotCheck[0]).toBe("Timezone: “Moon/Base” isn't one Steward knows, so times are in UTC");
   });
 
+  it("never calls the person by the name their mail gives them", async () => {
+    const model = fakeModel(({ system }) =>
+      system === SUMMARY_SYSTEM
+        ? "Sam, one email needs you today: Ana's proof."
+        : '{"verdict":"needs_you","reason":"Sam must sign the proof by Friday."}',
+    );
+    const mail = fakeMail({
+      label: "owner@studio.example",
+      emails: [
+        email({
+          subject: "Proof",
+          to: [{ name: "Sam Taylor", email: "owner@studio.example" }],
+          body: "Hi Sam, please sign the proof.",
+          receivedAt: "2026-10-22T07:00:00Z",
+        }),
+      ],
+    });
+    const brief = await setup({ mail: () => mail, model: () => model }).brief.generate();
+    expect(brief.summary).toBe("One email needs you today: Ana's proof.");
+    expect(brief.needsYou[0]?.reason).toBe("You must sign the proof by Friday.");
+    expect(JSON.stringify(brief)).not.toContain("Sam");
+  });
+
+  it("keeps the name of a sender who shares the owner's given name", async () => {
+    const model = fakeModel(({ system }) => {
+      if (system === SUMMARY_SYSTEM) throw new Error("summary model is down");
+      return '{"verdict":"needs_you","reason":"Sam Patel asks Sam to pay by Friday."}';
+    });
+    const mail = fakeMail({
+      label: "owner@studio.example",
+      emails: [
+        email({
+          subject: "Invoice",
+          from: { name: "Sam Patel", email: "sam@vendor.example" },
+          to: [{ name: "Sam Taylor", email: "owner@studio.example" }],
+          receivedAt: "2026-10-22T07:00:00Z",
+        }),
+      ],
+    });
+    const brief = await setup({ mail: () => mail, model: () => model }).brief.generate();
+    expect(brief.summary).toBe(
+      "One email needs you, starting with Sam Patel about “Invoice”. Nothing is on your calendar today.",
+    );
+    expect(brief.needsYou[0]?.reason).toBe("Sam Patel asks you to pay by Friday.");
+    expect(JSON.stringify(brief)).not.toContain("Taylor");
+  });
+
   it("labels demo mail in the summary", async () => {
     const mail = fakeMail({
       isDemo: true,
@@ -247,6 +576,25 @@ describe("the morning brief", () => {
   });
 });
 
+describe("the brief's day", () => {
+  it("begins at the clocks' change where midnight is skipped, not an hour early the day before", () => {
+    expect(localDayBounds("2026-09-06", "America/Santiago")).toEqual({
+      from: new Date("2026-09-06T04:00:00Z"),
+      to: new Date("2026-09-07T03:00:00Z"),
+    });
+    expect(localDayBounds("2026-03-08", "America/Havana").from).toEqual(new Date("2026-03-08T05:00:00Z"));
+    expect(localDayBounds("2026-09-05", "America/Santiago")).toEqual({
+      from: new Date("2026-09-05T04:00:00Z"),
+      to: new Date("2026-09-06T04:00:00Z"),
+    });
+    expect(localDayBounds("2026-03-08", LA)).toEqual({
+      from: new Date("2026-03-08T08:00:00Z"),
+      to: new Date("2026-03-09T07:00:00Z"),
+    });
+    expect(localDayBounds("2026-11-01", LA).to).toEqual(new Date("2026-11-02T08:00:00Z"));
+  });
+});
+
 describe("the brief's summary", () => {
   it("tells the model never to use a name and to treat the facts as data", () => {
     expect(SUMMARY_SYSTEM).toContain("never use a name for them");
@@ -255,6 +603,8 @@ describe("the brief's summary", () => {
       date: "2026-10-22",
       timeZone: "UTC",
       mailConnected: true,
+      mailRead: true,
+      calendarRead: true,
       needsYou: [],
       canWait: [],
       calendar: [],
@@ -263,6 +613,39 @@ describe("the brief's summary", () => {
     });
     expect(prompt).toContain('"weekday": "Thursday"');
     expect(prompt).toContain("Calendar: not connected");
+    expect(prompt).toContain('"mail": "connected"');
+    expect(prompt).toContain('"calendar": []');
+    const since = summaryPrompt({
+      date: "2026-10-22",
+      timeZone: LA,
+      mailConnected: true,
+      mailRead: true,
+      calendarRead: true,
+      needsYou: [],
+      canWait: [],
+      calendar: [],
+      tasks: [],
+      couldNotCheck: [],
+      mailWindow: { since: new Date("2026-10-21T15:00:00Z"), words: "since the last brief", cut: false },
+    });
+    expect(since).toContain('"mailChecked": "since the last brief, from Wednesday 08:00"');
+  });
+
+  it("never hands the model an empty list for a source it could not read", () => {
+    const prompt = summaryPrompt({
+      date: "2026-10-22",
+      timeZone: "UTC",
+      mailConnected: true,
+      mailRead: false,
+      calendarRead: false,
+      needsYou: [],
+      canWait: [],
+      calendar: [],
+      tasks: [],
+      couldNotCheck: [],
+    });
+    expect(prompt).toContain('"mail": "connected, but could not be read just now"');
+    expect(prompt).toContain('"calendar": "could not be read"');
   });
 
   it("cleans a model's summary: no greeting, no markdown, three sentences at most", () => {
@@ -277,8 +660,24 @@ describe("the brief's summary", () => {
     expect(cleanSummary("```\n- hi\n```")).toBeUndefined();
   });
 
+  it("never shows a reasoning model's thinking", () => {
+    expect(
+      cleanSummary("<think> The user wants a brief. Sam has 3 emails. </think> Three emails need you today."),
+    ).toBe("Three emails need you today.");
+    expect(cleanSummary("Planning the brief.\n</think>\nTwo emails can wait.")).toBe("Two emails can wait.");
+    expect(cleanSummary("<think>Still thinking about the brief and")).toBeUndefined();
+  });
+
   it("writes a plain summary that is always true", () => {
-    const base = { date: "2026-10-22", timeZone: "UTC", mailConnected: true, tasks: [], couldNotCheck: [] };
+    const base = {
+      date: "2026-10-22",
+      timeZone: "UTC",
+      mailConnected: true,
+      mailRead: true,
+      calendarRead: true,
+      tasks: [],
+      couldNotCheck: [],
+    };
     expect(plainSummary({ ...base, needsYou: [], canWait: [], calendar: [] })).toBe(
       "Nothing new needs you, and nothing is on your calendar today.",
     );

@@ -46,7 +46,7 @@ describe("suggestions from the brief", () => {
     expect(p.tasks.list({ state: "suggested" })).toHaveLength(3);
   });
 
-  it("respects Hide for 14 days, and a task already started for the same email", async () => {
+  it("never suggests an email again once it has had a task, hidden or not", async () => {
     const emails = urgent(3);
     const p = setup({ mail: () => fakeMail({ emails }), model: () => subjectModel() });
     await p.brief.generate();
@@ -63,12 +63,59 @@ describe("suggestions from the brief", () => {
     await p.brief.generate({ force: true });
     expect(p.tasks.list({ state: "suggested" })).toEqual([]);
 
-    // Twenty days after it was hidden, the hidden one may come back; the others stay handled.
+    // Twenty days on, the same emails are still not offered again: Hide means hide.
     p.clock.advance(17 * 24 * 3600_000);
     fresh();
     await p.brief.generate({ force: true });
-    const back = p.tasks.list({ state: "suggested" });
-    expect(back.map((t) => t.title)).toEqual([a!.title]);
+    expect(p.tasks.list({ state: "suggested" })).toEqual([]);
+  });
+
+  it("offers next month's email with the same title once the last task is long closed", async () => {
+    const invoice = (id: string, at: string) =>
+      email({
+        id,
+        subject: "Re: Invoice!",
+        from: { name: "Ana Pereira", email: "ana@hearthandco.example" },
+        receivedAt: at,
+      });
+    const emails = [invoice("inv_sep", "2026-09-12T07:00:00Z")];
+    const p = setup({
+      at: "2026-09-12T08:00:00Z",
+      mail: () => fakeMail({ emails }),
+      model: () => subjectModel(),
+    });
+    await p.brief.generate();
+    const [first] = p.tasks.list({ state: "suggested" });
+    expect(first?.title).toBe("Reply to Ana Pereira about Invoice!");
+    p.tasks.update(first!.id, { state: "resolved" });
+
+    // A follow-up a week later with the same subject is not suggested: the task was closed recently.
+    p.clock.set("2026-09-19T08:00:00Z");
+    emails.splice(0, emails.length, invoice("inv_sep_2", "2026-09-19T07:00:00Z"));
+    await p.brief.generate();
+    expect(p.tasks.list({ state: "suggested" })).toEqual([]);
+
+    // Next month's invoice is.
+    p.clock.set("2026-10-22T08:00:00Z");
+    emails.splice(0, emails.length, invoice("inv_oct", "2026-10-22T07:00:00Z"));
+    await p.brief.generate();
+    expect(p.tasks.list({ state: "suggested" }).map((t) => t.emailId)).toEqual(["inv_oct"]);
+  });
+
+  it("never suggests a title twice while a task with it is open", async () => {
+    const emails = urgent(1);
+    const p = setup({ mail: () => fakeMail({ emails }), model: () => subjectModel() });
+    p.tasks.create({
+      title: "Reply to Customer 1 about Order 1 today!",
+      detail: "",
+      source: "chat",
+      state: "working",
+    });
+    p.clock.advance(60 * 24 * 3600_000);
+    emails[0]!.receivedAt = p.clock.now().toISOString();
+    const brief = await p.brief.generate();
+    expect(brief.needsYou).toHaveLength(1);
+    expect(p.tasks.list({ state: "suggested" })).toEqual([]);
   });
 
   it("words a suggestion for a no-reply sender as looking into it, and drops reply prefixes", () => {

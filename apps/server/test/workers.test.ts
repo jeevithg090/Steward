@@ -185,8 +185,9 @@ describe.runIf(missing.length === 0)("background workers", () => {
   it("makes today's brief once the brief time has passed, once a day", async () => {
     const { settings, proactive } = t.server.services;
     settings.update({ briefTime: "00:00", timezone: "UTC" });
-    // A day nothing else has made a brief for.
-    const now = new Date(Date.now() + 5 * 86_400_000);
+    // A day nothing else has made a brief for. An earlier one: a brief for a later day than the
+    // service's today is refused.
+    const now = new Date(Date.now() - 5 * 86_400_000);
     const today = localDate(now, "UTC");
     expect(proactive.brief.get(today)).toBeUndefined();
 

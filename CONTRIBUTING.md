@@ -38,7 +38,7 @@ Before you push:
 ```sh
 pnpm check                # typecheck, Biome, Vitest
 pnpm e2e                  # Playwright, if you changed anything a person sees or anything in the server
-pnpm eval:triage          # if you changed triage
+pnpm eval:triage          # if you changed triage; uses the key in .env, if any
 ```
 
 `pnpm format` fixes formatting. The first `pnpm e2e` may need `pnpm exec playwright install chromium`.

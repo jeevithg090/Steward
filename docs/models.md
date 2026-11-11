@@ -159,7 +159,9 @@ the model your Steward is running on by accident:
 | `STEWARD_EVAL_BASE_URL`, `STEWARD_EVAL_MODEL`, `STEWARD_EVAL_API_KEY` | Any OpenAI-compatible endpoint.                      |
 | `OPENROUTER_API_KEY`, optional `STEWARD_EVAL_MODEL`                   | OpenRouter, `anthropic/claude-haiku-5.5` by default. |
 
-With neither, only the rules run. See [`evals/triage/README.md`](../evals/triage/README.md).
+It reads them from the environment, then `STEWARD_ENV_FILE`, then `.env`, as the server does, so a
+key in `.env` is enough. With neither, only the rules run, and `evals/triage/results.md` is left as
+it was (pass `--write` to rewrite it). See [`evals/triage/README.md`](../evals/triage/README.md).
 
 ## Privacy
 

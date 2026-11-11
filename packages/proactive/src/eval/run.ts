@@ -4,11 +4,16 @@
  *
  *   pnpm eval:triage                rules only, then the model when one is configured
  *   pnpm eval:triage --rules-only   rules only, no model calls
+ *   pnpm eval:triage --summaries    also the model on summaries only (snippet, no Cc): what triage
+ *                                   reads when the whole message can't be fetched
+ *   pnpm eval:triage --write        rewrite results.md even after a rules-only run
  *
  * The model comes from STEWARD_EVAL_BASE_URL + STEWARD_EVAL_MODEL (+ STEWARD_EVAL_API_KEY), or from
- * OPENROUTER_API_KEY (model STEWARD_EVAL_MODEL, default anthropic/claude-haiku-5.5). Prints a table
- * and writes evals/triage/results.md. Exits 1 if a rule ever disagrees with a label, so CI catches a
- * rule that starts hiding mail.
+ * OPENROUTER_API_KEY (model STEWARD_EVAL_MODEL, default anthropic/claude-haiku-5.5), read from the
+ * environment, then STEWARD_ENV_FILE, then the repo's .env, as the server reads them. Prints a table,
+ * and writes evals/triage/results.md when a model ran (or with --write), so a rules-only run leaves
+ * the committed file alone. Exits 1 if a rule ever disagrees with a label, so CI catches a rule that
+ * starts hiding mail, or if a reason calls the person by name.
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -17,30 +22,43 @@ import {
   EVAL_ABOUT,
   EVAL_NOW,
   EVAL_OWNER,
+  evalOwnerNames,
   pairResults,
   parseDataset,
   renderResults,
   type Section,
   score,
+  summaryShape,
   summaryTable,
   toTriageEmail,
 } from "./dataset.ts";
+import { loadEvalEnv } from "./env.ts";
 import { createOpenAICompatibleModel, evalModelConfig } from "./model.ts";
 
+const REPO_ROOT = fileURLToPath(new URL("../../../../", import.meta.url));
 const EVAL_DIR = fileURLToPath(new URL("../../../../evals/triage/", import.meta.url));
 const DATASET = `${EVAL_DIR}dataset.jsonl`;
 const RESULTS = `${EVAL_DIR}results.md`;
 
 const rulesOnly = process.argv.includes("--rules-only");
+const summariesToo = process.argv.includes("--summaries");
+const writeAnyway = process.argv.includes("--write");
 const set = parseDataset(await readFile(DATASET, "utf8"));
 const emails = set.map(toTriageEmail);
 const context = { now: EVAL_NOW, ownerEmail: EVAL_OWNER, about: EVAL_ABOUT };
+const names = evalOwnerNames(set);
 const sections: Section[] = [];
 
 const rulesRun = await triageEmails(emails, context);
 const rulesRows = pairResults(set, rulesRun);
-sections.push({ title: "Rules only, no model", model: "none", rows: rulesRows, metrics: score(rulesRows) });
+sections.push({
+  title: "Rules only, no model",
+  model: "none",
+  rows: rulesRows,
+  metrics: score(rulesRows, names),
+});
 
+if (!rulesOnly) loadEvalEnv(REPO_ROOT);
 const config = rulesOnly ? undefined : evalModelConfig(process.env);
 let note: string | undefined;
 if (config) {
@@ -57,27 +75,49 @@ if (config) {
     title: "Rules, then the model",
     model: config.model,
     rows,
-    metrics: score(rows),
+    metrics: score(rows, names),
     ...(run.failure ? { failure: run.failure } : {}),
   });
+  if (summariesToo) {
+    const summaryRun = await triageEmails(set.map(summaryShape), { ...context, model, concurrency: 6 });
+    const summaryRows = pairResults(set, summaryRun);
+    sections.push({
+      title: "Rules, then the model, on summaries",
+      model: config.model,
+      rows: summaryRows,
+      metrics: score(summaryRows, names),
+      ...(summaryRun.failure ? { failure: summaryRun.failure } : {}),
+    });
+  }
 } else {
   note = rulesOnly
     ? "Rules only, as asked (`--rules-only`)."
-    : "No model was configured, so only the rules ran. Set STEWARD_EVAL_BASE_URL, STEWARD_EVAL_MODEL and STEWARD_EVAL_API_KEY, or OPENROUTER_API_KEY, to measure a model.";
+    : "No model was configured, so only the rules ran. Set STEWARD_EVAL_BASE_URL, STEWARD_EVAL_MODEL and STEWARD_EVAL_API_KEY, or OPENROUTER_API_KEY, in the environment or in .env, to measure a model.";
 }
 
-await writeFile(
-  RESULTS,
-  renderResults(sections, { ranAt: new Date(), datasetSize: set.length, ...(note ? { note } : {}) }),
-);
 process.stdout.write(`\n${summaryTable(sections)}\n\n`);
 if (note) process.stdout.write(`${note}\n`);
-process.stdout.write(`Wrote ${RESULTS}\n`);
+if (config || writeAnyway) {
+  await writeFile(
+    RESULTS,
+    renderResults(sections, { ranAt: new Date(), datasetSize: set.length, ...(note ? { note } : {}) }),
+  );
+  process.stdout.write(`Wrote ${RESULTS}\n`);
+} else {
+  process.stdout.write(`Left ${RESULTS} as it was: only the rules ran. Pass --write to rewrite it.\n`);
+}
 
 const ruleWrong = sections.reduce((sum, s) => sum + s.metrics.ruleWrong, 0);
 if (ruleWrong > 0) {
   process.stderr.write(
     `${ruleWrong} rule verdict(s) disagree with the labels. Rules must only settle what can wait.\n`,
+  );
+  process.exitCode = 1;
+}
+const namedOwner = sections.reduce((sum, s) => sum + s.metrics.namedOwner, 0);
+if (namedOwner > 0) {
+  process.stderr.write(
+    `${namedOwner} reason(s) call the person by a name their mail gives them. Steward never uses one.\n`,
   );
   process.exitCode = 1;
 }

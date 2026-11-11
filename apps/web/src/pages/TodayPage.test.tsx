@@ -1,4 +1,4 @@
-import type { Brief, Settings } from "@steward/shared";
+import type { Brief, Settings, Task } from "@steward/shared";
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { Route, Routes, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -146,5 +146,104 @@ describe("Start on an email in the brief", () => {
     );
     expect(handed.state.prompt).not.toContain("Ana");
     expect(handed.state.prompt).not.toContain("invoice");
+  });
+});
+
+describe("Start on the brief", () => {
+  const item = {
+    emailId: "msg_1",
+    subject: "Delivery on Thursday?",
+    from: { name: "Pat Example", email: "pat@example.com" },
+    verdict: "needs_you" as const,
+    reason: "Asks you to confirm by noon.",
+    confidence: 0.75,
+    by: "model" as const,
+  };
+  const suggestion: Task = {
+    id: "tsk_1",
+    title: "Reply to Pat Example about Delivery on Thursday?",
+    detail: "Asks you to confirm by noon.",
+    state: "suggested",
+    source: "suggestion",
+    emailId: "msg_1",
+    createdAt: NOW.toISOString(),
+    updatedAt: NOW.toISOString(),
+  };
+
+  function serveBrief(tasks: Task[]) {
+    return mockFetch((req) => {
+      if (req.path === "/api/settings") return { body: settings };
+      if (req.path === "/api/brief") return { body: { ...brief(DAY), needsYou: [item] } };
+      if (req.path === "/api/info") return { body: {} };
+      if (req.path === "/api/approvals") return { body: [] };
+      if (req.path === "/api/tasks") return { body: { tasks, counts: {} } };
+      if (req.path === "/api/tasks/tsk_1/start") {
+        return { body: { task: { ...suggestion, state: "working", threadId: "thr_1" }, threadId: "thr_1" } };
+      }
+      return undefined;
+    });
+  }
+
+  it("starts the email's suggestion rather than a second, separate chat", async () => {
+    const server = serveBrief([suggestion]);
+    renderWithProviders(<TodayPage />);
+    await screen.findByText("Steward could take this on");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Start: Pat Example · Delivery on Thursday?" }),
+    );
+    await waitFor(() =>
+      expect(server.calls.some((c) => c.method === "POST" && c.path === "/api/tasks/tsk_1/start")).toBe(true),
+    );
+  });
+
+  it("opens a chat about the email when there is no suggestion for it", async () => {
+    const server = serveBrief([]);
+    renderWithProviders(<TodayPage />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Start: Pat Example · Delivery on Thursday?" }),
+    );
+    expect(await screen.findByText("Started")).toBeTruthy();
+    expect(server.calls.some((c) => c.path.endsWith("/start"))).toBe(false);
+  });
+});
+
+describe("Hide on the newest suggestion", () => {
+  function serveSuggestion(task: Task) {
+    return mockFetch((req) => {
+      if (req.path === "/api/settings") return { body: settings };
+      if (req.path === "/api/brief") return { body: brief(DAY) };
+      if (req.path === "/api/info") return { body: {} };
+      if (req.path === "/api/approvals") return { body: [] };
+      if (req.path === "/api/tasks") return { body: { tasks: [task], counts: {} } };
+      if (req.path === `/api/tasks/${task.id}` && req.method === "PATCH") {
+        return { body: { ...task, state: "hidden" } };
+      }
+      return undefined;
+    });
+  }
+  const task: Task = {
+    id: "tsk_2",
+    title: "Reply to Pat Example about the kiln",
+    detail: "Asks whether the kiln is free on Friday.",
+    state: "suggested",
+    source: "suggestion",
+    emailId: "msg_2",
+    createdAt: NOW.toISOString(),
+    updatedAt: NOW.toISOString(),
+  };
+
+  it("says the email won't be suggested again when the suggestion came from one", async () => {
+    serveSuggestion(task);
+    renderWithProviders(<TodayPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Hide" }));
+    expect(await screen.findByText("Hidden. Steward won't suggest this email again.")).toBeTruthy();
+  });
+
+  it("does not mention an email when the task came from no email", async () => {
+    const { emailId: _emailId, ...noEmail } = task;
+    serveSuggestion({ ...noEmail, source: "person", title: "Order more clay" });
+    renderWithProviders(<TodayPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Hide" }));
+    expect(await screen.findByText("Hidden. It won't come back.")).toBeTruthy();
   });
 });
