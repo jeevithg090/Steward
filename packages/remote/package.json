@@ -11,8 +11,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@noble/ciphers": "1.3.0",
-    "@noble/curves": "1.9.7"
+    "@noble/ciphers": "2.4.0",
+    "@noble/curves": "2.4.0"
   },
   "devDependencies": {
     "tweetnacl": "1.0.3"
