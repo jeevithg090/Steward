@@ -117,7 +117,7 @@ export default defineConfig({
         // Set here, so a value in the shell or in .env cannot move the phone port off this machine.
         STEWARD_DEVICE_HOST: "127.0.0.1",
         // Ignore a STEWARD_ENV_FILE from the shell: the run must not pick up someone's real keys.
-        // The server still reads <repo>/.env, so global-setup.ts stops the run if a key got in.
+        // The server still reads <repo>/.env, so global-setup.ts stops the run if a key or a relay got in.
         STEWARD_ENV_FILE: "",
       },
       reuseExistingServer,

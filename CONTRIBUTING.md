@@ -46,8 +46,8 @@ pnpm eval:triage          # if you changed triage
 
 `pnpm e2e` uses the same ports as `pnpm dev`. Stop `pnpm dev` first, or give the run ports of its
 own: `STEWARD_E2E_SERVER_PORT=8797 STEWARD_E2E_WEB_PORT=4173 pnpm e2e`. It runs on the scripted
-model, and stops before any spec if the server finds a model key, in `.env` or in the shell: move
-`.env` aside while it runs. CI also runs a few specs against the production build, served by the
+model, and stops before any spec if the server finds a model key or a relay (`STEWARD_RELAY_URL`),
+in `.env` or in the shell: move `.env` aside while it runs. CI also runs a few specs against the production build, served by the
 Steward server itself; to do the same, run `pnpm build && STEWARD_E2E_BUILT=1 pnpm e2e`.
 
 ## Finding your way
