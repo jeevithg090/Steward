@@ -61,3 +61,30 @@ large text, axe coverage), `docs-tenants` (README, docs, tenants, first run), `p
 ## Status
 
 - 10 Nov 2026: the 14 first audits returned 165 items. Wave 1 started.
+- 10 Nov 2026: the six second audits returned 75 more. Of the 240, 232 went to the 20 tracks;
+  the other 8 were already covered by a wave-1 track.
+- 11 Nov 2026: every builder and reviewer finished. Builders closed 226 work-list entries and
+  skipped 27 with a reason (wrong, stale, or another track's). Reviewers fixed 80 problems in the
+  builders' work, among them a padding bypass of the card check, Always allow on a page with no
+  host, and a new shell rule that refused `rm -rf build > /dev/null` outright. Three reviewers ended
+  on "concerns"; what is left is in PLAN.md §9.
+- 11 Nov 2026: the lead merged the 20 branches into `excellent/integration` and fixed where they
+  met: a late routine's note, the database's new migration-id check against older tests, the
+  fixed bot rules against limiting old ones to their bot, the directory fetch guard's messages,
+  the chat page's agent and empty-conversation rules, the scripted model and the new task
+  label, and the phone tests run in any order. Migration `proactive.002_triage_cache_context`
+  became `proactive.003_triage_cache_context`.
+- 11 Nov 2026: three handoffs no track owned were done by the lead: the agent counts a tool it
+  does not know as tainting, the chat follows the shell's layout at large text (the web-a11y
+  track's fixme spec now runs), and the lead-tracker bot's example lost its phone number. The
+  README no longer claims CI runs on GitHub.
+
+### What the pass taught
+
+- Parallel builders in sibling worktrees share `refs/stash`; one builder's `git stash pop` took
+  another's work. Every prompt now forbids `git stash`.
+- A message to a running workflow agent starts a second copy instead of reaching it. Put every
+  instruction in the prompt before launch.
+- Most merge fixes were where one track tightened a rule (fixed bot rules, migration ids, tests
+  that must pass in any order) and another track's new code or tests assumed the old one. Run
+  the whole suite after each merge, not only the touched packages.

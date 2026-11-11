@@ -496,3 +496,62 @@ for the computer.
   - 16 names were shared by 35 bots ("Meal planner" five times); 27 were renamed with their ids
     kept, and the batch writer now gives each new bot a name nobody on the shelf has
     (`distinctName`). One example used a real-looking address; it is `example.com` now.
+- **10–11 Nov 2026, the excellence pass.** [docs/plans/excellence.md](docs/plans/excellence.md):
+  20 auditors (240 items), then 20 builders and 20 reviewers, one per track, each in its own
+  worktree, merged by the lead into `excellent/integration`.
+  - **Safety.** Taint now follows a task through delegation, Start on a suggestion and a
+    `/chat?prompt=` link (which only fills the box now and never sends), and covers writes that
+    leave Steward (mail, the calendar, the web, connected apps) and routine edits. The card check
+    finds a card next to an expiry or CVC and keeps every kind of finding however many there
+    are. Shell presets refuse more "download into a shell" forms without refusing output
+    redirects. Always allow pins the host and "nobody", and is not offered on a page with no host.
+    A bot's rules bind only that bot's agent and can only be switched off. A tenant package
+    whose allow rule would let a send, payment, signature or deletion through stops at start-up.
+    MCP tools take the kind the person marks (read, write, send, delete), and a tool that changes
+    after it was allowed is held back until the person allows it again. Phone calls are sealed
+    with an id and a time, so the relay cannot replay or swap them.
+  - **The record.** It is checked off the event loop, new entries only every minute, with a
+    button to check everything. It can be downloaded, and the newest seal can be written down
+    and checked later.
+  - **The app.** It says so when the server is down instead of drawing a blank. Focus moves to
+    each page's heading. There are fixes for large text and forced colours, and axe audits on
+    more pages. New: a conversation list, opening the pages and files Steward made, Allow in this
+    conversation, editing routines, attaching text files, and saving a skill from a conversation.
+    Chat goes back to an empty conversation rather than making another.
+  - **Agents and routines.** The agent has a context budget that keeps the person's words and
+    the latest turns. Cut-off replies and model errors read plainly. Routines run one at a time
+    per agent, say when a start was late, and record a missed run. There is an inbox watch. The
+    morning brief says which sources it could not read.
+  - **Tests and CI.** The unit tests pass shuffled, web tests fail on any unmocked request, and
+    there are new e2e specs for approvals, taint and the record. CI is set up but not running on
+    GitHub for this repository.
+  - Merge notes: `proactive.002_triage_cache_context` became `proactive.003_triage_cache_context`.
+    The gateway gained `rules.limitToAgent` for limiting bot rules written before rules were
+    scoped. No API route reaches it. Where two tracks met, the lead's fixes are listed in the
+    plan's status. The agent now also counts a tool it does not know as tainting; the gateway
+    half of that was already done.
+  - Verified on `excellent/integration`: typecheck and Biome clean, 2,681 unit tests (1 skipped:
+    live Codex), the production build, and e2e 99/99 with the built project and the axe audits.
+    Every commit is by the project identity, gitleaks finds nothing in the pass's commits, and
+    no dependency was added.
+  - Left open, from the reviewers (none fails open; details in each track's review):
+    - Mail with both a plain and an HTML part: Steward reads the plain part, as documented, but
+      Gmail shows the HTML one, so a plain part that differs is text the person never sees.
+      Which part to read is a decision for the maintainers. Text hidden by a `<style>` block is
+      not detected (documented).
+    - A routine firing that is claimed and waiting in the per-agent queue is lost if Steward
+      restarts, and Run now and a resume skip the queue.
+    - With the chat closed, a run that fails later shows no toast; the error is in the
+      conversation when the person comes back.
+    - Shell presets cannot see a separator inside quotes, `>&` before a path or `bash < <(curl …)`.
+      Shell commands still ask by default.
+    - The agent's file list stops at 500 entries without saying so, and a download that never
+      finishes keeps its browser open.
+    - The browser drops an unnamed submit button, so the gateway's "unnamed submit is a send"
+      rule does not reach it yet.
+    - Answering a waiting hand-off can resume it next to a second one to the same coding agent.
+    - In a tainted conversation, `task_update` could reword a task the person wrote. Nothing
+      creates such tasks from a conversation yet.
+    - A phone whose clock is more than two minutes off fails every call. A task started from the
+      phone gets the phone's short-answer note rather than the task note.
+    - The brief's name scrub is case-sensitive ("Will you…" for an owner named Will).
