@@ -25,7 +25,7 @@ test.describe("The agent's computer", () => {
     await main.getByRole("searchbox", { name: "Search" }).fill("127.0.0.1");
     // The count says "match" only once the search has answered, so the rows below are its rows,
     // not the whole record's, and "no Done" cannot pass on an empty or stale list.
-    await expect(main.getByText(/ match\.$/)).toBeVisible();
+    await expect(main.getByText(/^[\d,]+ entr(?:y|ies) match(?:es)?\.$/).first()).toBeVisible();
     const entries = main.getByRole("region", { name: "Entries" }).getByRole("listitem");
     await expect(
       entries.filter({ hasText: "Failed" }).filter({ hasText: "127.0.0.1" }).first(),

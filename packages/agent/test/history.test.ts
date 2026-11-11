@@ -75,6 +75,10 @@ describe("isTainted", () => {
     expect(isTainted([u("u1"), listed, t("t1", "c1")], taints)).toBe(false);
   });
 
+  it("counts a result whose call is missing, since nothing shows it came from a clean tool", () => {
+    expect(isTainted([u("u1"), t("t1", "c_gone")], taints)).toBe(true);
+  });
+
   it("is true once a tainting tool returned, including an error", () => {
     expect(isTainted([u("u1"), a("a1", ["c1"]), t("t1", "c1")], taints)).toBe(true);
     expect(isTainted([u("u1"), a("a1", ["c1"]), t("t1", "c1", "Error: timeout")], taints)).toBe(true);

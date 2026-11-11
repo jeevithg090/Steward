@@ -26,7 +26,6 @@ import {
   type Governance,
   type Initiator,
   isBuiltinTool,
-  MCP_TOOL_PREFIX,
   parseMcpToolName,
   TOOLS,
   type ToolResultEnvelope,
@@ -1218,8 +1217,8 @@ export class GovernedToolsMiddleware extends Middleware {
     const tool = owned.get(name);
     if (tool) return tool.taints;
     if (isBuiltinTool(name)) return TOOLS[name].taints;
-    if (name.startsWith(MCP_TOOL_PREFIX)) return true;
-    return false;
+    // An MCP tool, or one Steward does not know (a removed bot's, a name the model made up).
+    return true;
   }
 
   private finished(input: RunAgentInput): RunFinishedEvent {

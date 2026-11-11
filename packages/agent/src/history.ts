@@ -282,8 +282,9 @@ export function isTainted(messages: readonly Message[], taints: (toolName: strin
   for (const m of messages) {
     if (m.role === "user" && isTaintingTurn(textOf(m))) return true;
     if (m.role !== "tool") continue;
+    // A result whose call is missing cannot show it came from a clean tool: it counts.
     const name = names.get(m.toolCallId);
-    if (name === undefined || !taints(name)) continue;
+    if (name !== undefined && !taints(name)) continue;
     if (wasRefused(m.content)) continue;
     return true;
   }

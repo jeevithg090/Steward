@@ -387,8 +387,9 @@ pnpm e2e            # end-to-end tests in Chromium, with the scripted model (Pla
 pnpm eval:triage    # how well a model sorts mail, on a labelled set
 ```
 
-CI runs all of it on Node 24 and 26 with the scripted model, so it needs no secrets and sends
-nothing to any model provider.
+CI (`.github/workflows/ci.yml`) is set up to run all of it on Node 24 and 26 with the scripted
+model, so it needs no secrets and sends nothing to any model provider. It is not running on GitHub
+for this repository yet, so run `pnpm check` and `pnpm e2e` yourself before you push.
 
 | Folder                | What is in it                                                                |
 | --------------------- | ---------------------------------------------------------------------------- |

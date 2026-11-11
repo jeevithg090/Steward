@@ -215,8 +215,8 @@ made-up password, RFC 6455's sample WebSocket key, and the published test vector
 and Happy. Secret scanners flag them, so `.gitleaks.toml` and `.gitguardian.yaml` name each one by
 its exact value; a real key added to the same file is still caught. `.gitleaks.toml` also adds rules
 for the key shapes gitleaks does not know by itself (NVIDIA, OpenRouter, xAI, Groq and Steward's
-phone tokens). Run `gitleaks git .` before you open a pull request, and never commit a real key,
-even in a test.
+phone tokens). Before you open a pull request, run `gitleaks git --log-opts="origin/main..HEAD" .`
+to scan your own commits, and never commit a real key, even in a test.
 
 ## The shell and the workspace
 

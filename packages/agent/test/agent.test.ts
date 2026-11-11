@@ -570,6 +570,17 @@ describe("taint", () => {
     expect(send?.outbound).toBe("Page\n\nRead this.");
   });
 
+  it("counts a tool Steward does not know as tainting, failing closed", async () => {
+    script((req) => {
+      const tools = req.messages.filter((m) => m.role === "tool").length;
+      if (tools === 0) return toolCall("fetch_page", { url: "https://example.com" });
+      if (tools === 1) return toolCall("shell_run", { command: "ls" });
+      return { content: "Done." };
+    });
+    await runTurn(agent(), [user("read it, then list the files")]);
+    expect(fakes.governance.callsFor("shell_run")[0]?.tainted).toBe(true);
+  });
+
   it("carries over from the conversation's history", async () => {
     const history: Message[] = [
       user("read the page"),

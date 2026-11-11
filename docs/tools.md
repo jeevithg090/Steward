@@ -16,7 +16,9 @@ from the catalogue, not from the caller.
 - **Surface** is where it acts, for rules such as `tool.surface == "calendar"`.
 - **Taints** means its results are content Steward does not trust. Once one has returned, the
   conversation is [tainted](governance.md#taint), and from then on every send, payment,
-  signature, deletion and shell command asks.
+  signature, deletion and shell command asks, and so do memories, routines and any write that
+  leaves Steward (mail, the calendar, the web, a connected app). A tool Steward does not know
+  counts as tainting.
 - **By default** is what happens with Steward's presets and no other rules. `steward` and other
   tenant packages can add rules; yours on `/rules` come on top.
 

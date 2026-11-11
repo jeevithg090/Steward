@@ -33,12 +33,13 @@ async function recordAbout(page: Page, address: string) {
 
 /** The number in "Record intact · N entries verified". */
 async function verifiedCount(page: Page): Promise<number> {
-  const badge = page
+  // Only "Record intact" is announced; the count is written beside it, in the same line.
+  const status = page
     .getByRole("main")
     .getByRole("status")
     .filter({ hasText: /record intact/i });
-  await expect(badge).toBeVisible();
-  const text = (await badge.textContent()) ?? "";
+  await expect(status).toBeVisible();
+  const text = (await status.locator("xpath=..").textContent()) ?? "";
   return Number(/([\d,]+) entr/.exec(text)?.[1]?.replace(/,/g, "") ?? Number.NaN);
 }
 
