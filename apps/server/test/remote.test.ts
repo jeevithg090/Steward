@@ -476,4 +476,26 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
     await expect(p.connect()).rejects.toThrow(/isn't paired/);
     expect(t.server.services.devices.remoteKey(p.deviceId)).toBeUndefined();
   });
+
+  it("revokes at the relay a phone removed while the relay was out of reach", async () => {
+    const p = await pair("Lost iPhone");
+    const kept = await pair("Kept iPhone");
+    const bridge = t.server.services.remote!;
+    // The bridge loses the relay; the revoke it would send has nowhere to go.
+    (bridge as unknown as { ws?: WebSocket }).ws?.terminate();
+    expect((await t.api(`/api/devices/${p.deviceId}`, { method: "DELETE" })).status).toBe(200);
+    expect(
+      (await fetch(`${relayUrl}/v1/envelopes`, { headers: { authorization: `Bearer ${p.token}` } })).status,
+    ).toBe(200);
+    await waitFor(() => !bridge.status().connected);
+    await bridge.whenConnected();
+    // On reconnecting, the bridge lists the phones it still knows and the relay drops the rest.
+    await waitFor(() => p.revoked || p.ws?.readyState === WebSocket.CLOSED);
+    const envelopes = await fetch(`${relayUrl}/v1/envelopes`, {
+      headers: { authorization: `Bearer ${p.token}` },
+    });
+    expect(envelopes.status).toBe(401);
+    expect(relay.store.deviceForToken(kept.token)).toBe(kept.deviceId);
+    expect((await kept.call("brief.get", {})).ok).toBe(true);
+  });
 });

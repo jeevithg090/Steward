@@ -240,7 +240,9 @@ only an opaque blob and a level.
   finished on your Mac.
 - The record says "Answered from Sam's iPhone (phone app, Face ID checked)".
 - Revoke the phone in Settings → Phone: the relay closes its connection and forgets its token and
-  log at once.
+  log at once. If Steward can't reach the relay then, the relay forgets them as soon as Steward
+  reconnects: each time it connects, Steward lists the phones it still knows, and the relay drops
+  the rest. So one relay serves one Steward.
 
 What the app may ask is a closed list: `approval.decide`, `chat.send`, `task.start`, `task.hide`,
 `routine.run`, `run.stop` and `brief.get`. Rules, settings, connections, secrets, the shell and the

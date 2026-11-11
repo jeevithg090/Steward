@@ -229,15 +229,30 @@ export function createRelay(opts: RelayOptions): Relay {
         return;
       }
       case "device.revoke":
-        store.revoke(frame.deviceId);
-        for (const s of devices.get(frame.deviceId) ?? []) {
-          send(s.ws, { type: "revoked" });
-          s.ws.close(4403, "revoked");
-        }
-        devices.delete(frame.deviceId);
-        log({ event: "revoke", deviceId: frame.deviceId });
+        revoke(frame.deviceId);
         return;
+      case "devices.sync": {
+        // Steward lists the phones it still knows; any other one here was revoked while Steward
+        // could not reach the relay. A frame that is not a list of ids changes nothing.
+        if (!Array.isArray(frame.deviceIds) || !frame.deviceIds.every((id) => typeof id === "string")) return;
+        const known = new Set(frame.deviceIds);
+        const gone = store.activeIds().filter((id) => !known.has(id));
+        for (const id of gone) revoke(id);
+        log({ event: "devices.sync", kept: known.size, revoked: gone.length });
+        return;
+      }
     }
+  };
+
+  /** Forgets a device's token, log and push address at once, and closes its connections. */
+  const revoke = (deviceId: string) => {
+    store.revoke(deviceId);
+    for (const s of devices.get(deviceId) ?? []) {
+      send(s.ws, { type: "revoked" });
+      s.ws.close(4403, "revoked");
+    }
+    devices.delete(deviceId);
+    log({ event: "revoke", deviceId });
   };
 
   /** Forwards a phone's call, waiting up to the grace for Steward to come back. */

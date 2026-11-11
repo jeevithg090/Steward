@@ -157,6 +157,30 @@ describe("the relay server", () => {
     expect((await refused).error).toBe("A phone can't ask for that.");
   });
 
+  it("revokes every phone Steward no longer lists when it connects", async () => {
+    const { url, ws, logs } = await start();
+    const kept = await device(ws, "dev_keepkeep");
+    const gone = await device(ws, "dev_gonegone");
+    relay!.store.append(gone.deviceId, [{ localId: "a", topic: "approvals", c: "sealed" }]);
+    const told = next(gone.ws, "revoked");
+    const closed = new Promise<number>((r) => gone.ws.once("close", (code) => r(code)));
+    const machine = await open(`${ws}/v1/machine`, { authorization: `Bearer ${TOKEN}` });
+    // Not a list of ids: nothing changes.
+    machine.send(JSON.stringify({ type: "devices.sync", deviceIds: "everyone" }));
+    machine.send(JSON.stringify({ type: "devices.sync", deviceIds: [kept.deviceId] }));
+    await told;
+    expect(await closed).toBe(4403);
+    expect(relay!.store.deviceForToken(gone.token)).toBeUndefined();
+    expect(relay!.store.after(gone.deviceId, 0)).toEqual([]);
+    expect(relay!.store.deviceForToken(kept.token)).toBe(kept.deviceId);
+    expect(kept.ws.readyState).toBe(WebSocket.OPEN);
+    const envelopes = await fetch(`${url}/v1/envelopes`, {
+      headers: { authorization: `Bearer ${gone.token}` },
+    });
+    expect(envelopes.status).toBe(401);
+    expect(logs.filter((l) => l.includes('"event":"devices.sync"'))).toHaveLength(1);
+  });
+
   it("waits the grace for Steward to come back, then says it is offline", async () => {
     const { ws } = await start({ graceMs: 150 });
     const phone = await device(ws);

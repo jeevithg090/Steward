@@ -57,7 +57,12 @@ export type FromMachine =
   | { type: "pair.open"; pairingId: string; expiresAt: string }
   | { type: "pair.done"; pairingId: string; deviceId: string; sealed: string }
   | { type: "pair.refuse"; pairingId: string }
-  | { type: "device.revoke"; deviceId: string };
+  | { type: "device.revoke"; deviceId: string }
+  /**
+   * Sent on every `ready`: the paired apps Steward still knows. The relay revokes every other
+   * device it holds, so a phone revoked while the relay was out of reach is revoked there too.
+   */
+  | { type: "devices.sync"; deviceIds: string[] };
 
 /** What the relay sends a phone. */
 export type ToDevice =

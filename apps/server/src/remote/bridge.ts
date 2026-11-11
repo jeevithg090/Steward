@@ -177,7 +177,9 @@ export class RemoteBridge {
           this.connectedWaiters.delete(waiter);
           waiter();
         }
-        // Pairings opened while the relay was away.
+        // A revoke sent while the relay was out of reach was lost: the relay drops every phone
+        // that is not on this list. Then the pairings opened while it was away.
+        this.send({ type: "devices.sync", deviceIds: this.s.devices.remoteDevices().map((d) => d.id) });
         for (const [id, p] of this.pairings) {
           if (p.state === "waiting")
             this.send({ type: "pair.open", pairingId: id, expiresAt: new Date(p.expiresAt).toISOString() });
