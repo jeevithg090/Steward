@@ -6,6 +6,7 @@
 import {
   type APIRequestContext,
   test as base,
+  type ConsoleMessage,
   expect,
   type Locator,
   type Page,
@@ -30,11 +31,20 @@ const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
 /**
  * Console errors that are not the app's: Chromium reports every 4xx answer as an error, and specs
- * check refusals on purpose. A 5xx is never on this list, so a server failure fails the spec.
+ * check refusals on purpose. Only an answer from Steward's API is allowed. A 4xx for a script, a
+ * style, a font or an image is a file the app needs and did not get, so it fails the spec, as a
+ * 5xx from anywhere does.
  */
-const ALWAYS_ALLOWED_CONSOLE_ERRORS = [
-  /^Failed to load resource: the server responded with a status of 4\d\d\b/,
-];
+function isApiRefusal(message: ConsoleMessage): boolean {
+  if (!/^Failed to load resource: the server responded with a status of 4\d\d\b/.test(message.text())) {
+    return false;
+  }
+  try {
+    return new URL(message.location().url).pathname.startsWith("/api/");
+  } catch {
+    return false;
+  }
+}
 
 export const test = base.extend<StewardFixtures>({
   allowedConsoleErrors: [[], { option: true }],
@@ -45,12 +55,13 @@ export const test = base.extend<StewardFixtures>({
   // React error or a crashed handler can otherwise pass every assertion.
   page: async ({ page, allowedConsoleErrors }, provide, testInfo) => {
     const problems: string[] = [];
-    const allowed = [...ALWAYS_ALLOWED_CONSOLE_ERRORS, ...allowedConsoleErrors];
     page.on("pageerror", (error) => problems.push(`Uncaught in the page: ${error.message}`));
     page.on("console", (message) => {
-      if (message.type() !== "error") return;
+      if (message.type() !== "error" || isApiRefusal(message)) return;
       const text = message.text();
-      if (!allowed.some((pattern) => pattern.test(text))) problems.push(`Console error: ${text}`);
+      if (!allowedConsoleErrors.some((pattern) => pattern.test(text))) {
+        problems.push(`Console error: ${text} (${message.location().url || "no address"})`);
+      }
     });
     page.on("websocket", (socket) => {
       if (!isLocal(socket.url())) problems.push(`A WebSocket left this machine: ${socket.url()}`);
