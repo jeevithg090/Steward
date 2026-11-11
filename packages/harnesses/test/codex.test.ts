@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -67,7 +67,8 @@ describe("Codex approvals in Steward's terms (plan §3)", () => {
       fileChangePermission({ fileChanges: { "/etc/hosts": { type: "update" } } }, "t:3", CWD),
     ).toMatchObject({
       surface: "system",
-      target: { path: "/etc/hosts" },
+      // Outside the workspace, where it really is (on macOS /etc is a link to /private/etc).
+      target: { path: join(realpathSync("/etc"), "hosts") },
     });
     expect(
       fileChangePermission({ fileChanges: { "a.md": { type: "update" } }, grantRoot: "/srv" }, "t:4", CWD)
@@ -99,7 +100,11 @@ describe("Codex approvals in Steward's terms (plan §3)", () => {
       fileChangePermission({}, "t:5d", CWD, [
         { path: "a.md", kind: { type: "update", move_path: "/tmp/a.md" } },
       ]),
-    ).toMatchObject({ kind: "delete", surface: "system", args: { files: ["a.md", "/tmp/a.md"] } });
+    ).toMatchObject({
+      kind: "delete",
+      surface: "system",
+      args: { files: ["a.md", join(realpathSync("/tmp"), "a.md")] },
+    });
     // A change that lists no file, or one to a vendor tool's own settings, asks.
     expect(fileChangePermission({}, "t:5e", CWD).surface).toBe("system");
     expect(

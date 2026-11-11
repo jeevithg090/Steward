@@ -105,8 +105,11 @@ that carries a command is a `shell` call whatever kind it claims.
   When they are all in the workspace and one is a key or password file (`.env`, an SSH key), it is
   judged by that file, so the rule that keeps those out of reach still refuses it.
 - **Inside or outside is decided by real path,** as the computer's own workspace check is: a link
-  inside the workspace that leads out of it counts as outside. A path that starts with `~` is in
+  inside the workspace that leads out of it counts as outside, and so does a link to a file that
+  is not there yet, since writing through it creates that file. A path that starts with `~` is in
   the home folder, never in the workspace.
+- **Outside the workspace, a path is judged where it really is.** A link in a project folder that
+  leads to `~/.ssh` does not pass a rule for the project folder.
 - **The tools' own settings** (`.claude/`, `.gemini/`, `.codex/`, `.mcp.json`) ask even inside the
   workspace, since a change there could let the tool stop asking. So does a change through a link
   that leads to them.
@@ -118,7 +121,8 @@ tool.source == "harness:claude-code" && startsWith(target.path, "/Users/me/proje
 ```
 
 A change outside the workspace asks by default. A rule like this one lets the agent work on a
-project folder without asking.
+project folder without asking. Name the folder by its real path: on macOS, `/tmp` is
+`/private/tmp`.
 
 The answer goes back by the option's kind, never by its label:
 

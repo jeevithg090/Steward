@@ -2,7 +2,7 @@
 // requests follows Happy's happy-cli/src/agent/acp/AcpBackend.ts (MIT, Happy Coder Contributors),
 // with two fixes: the call is identified by `toolCallId` and described by `rawInput` and
 // `locations` (never by its title), and the answer is chosen by the option's `kind`.
-import { realpathSync } from "node:fs";
+import { lstatSync, readlinkSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type {
@@ -93,14 +93,34 @@ export function pathsOf(locations: readonly ToolCallLocation[] | null | undefine
   return [...new Set(paths)];
 }
 
-/** The real path of the deepest part of `path` that exists, with the rest as written. */
-function realish(path: string): string {
+/** How many links in a row are followed before a path counts as leading nowhere it can be told. */
+const MAX_LINKS = 40;
+
+/**
+ * Where a path really lands: the real path of the deepest part of it that exists, with the rest
+ * as written. A link that points at something not there yet is followed too, since writing
+ * through it creates that file. Undefined when that cannot be told (a loop of links).
+ */
+function realish(path: string, links = 0): string | undefined {
   const rest: string[] = [];
   let current = path;
   for (;;) {
     try {
       return join(realpathSync(current), ...rest.reverse());
     } catch {
+      let link: string | undefined;
+      try {
+        if (lstatSync(current).isSymbolicLink()) link = readlinkSync(current);
+      } catch {
+        // Not there at all: look at its folder.
+      }
+      if (link !== undefined) {
+        if (links >= MAX_LINKS) return undefined;
+        // A relative link is read from the folder it really is in.
+        const from = realish(dirname(current), links + 1);
+        if (from === undefined) return undefined;
+        return realish(join(resolve(from, link), ...rest.reverse()), links + 1);
+      }
       const parent = dirname(current);
       if (parent === current) return path;
       rest.push(basename(current));
@@ -126,18 +146,26 @@ function fullPath(path: string, cwd: string): string {
 /**
  * A path inside the workspace, relative to it; `undefined` when it points outside. Compared by
  * real path, so a link inside the workspace that leads out of it counts as outside (as the
- * computer's own workspace check does).
+ * computer's own workspace check does), and so does one that leads to a file not there yet.
  */
 export function insideWorkspace(path: string, cwd: string): string | undefined {
-  const rel = relative(realish(resolve(cwd)), realish(fullPath(path, cwd)));
+  const root = realish(resolve(cwd));
+  const full = realish(fullPath(path, cwd));
+  if (root === undefined || full === undefined) return undefined;
+  const rel = relative(root, full);
   if (rel === "") return ".";
   if (rel.startsWith(`..${sep}`) || rel === ".." || isAbsolute(rel)) return undefined;
   return rel;
 }
 
-/** A path as a call shows it: relative inside the workspace, absolute outside it. */
+/**
+ * A path as a call shows it, and as rules judge it: relative inside the workspace, and outside it
+ * where it really lands, so a link in a project folder that leads elsewhere is not judged as part
+ * of that folder.
+ */
 export function shownPath(path: string, cwd: string): string {
-  return insideWorkspace(path, cwd) ?? fullPath(path, cwd);
+  const full = fullPath(path, cwd);
+  return insideWorkspace(path, cwd) ?? realish(full) ?? full;
 }
 
 /**
@@ -159,7 +187,9 @@ export function targetPath(paths: readonly string[], cwd: string): string | unde
   if (shown.length <= 1) return shown[0];
   const keyFile = shown.find((p) => KEY_FILE.test(p));
   if (keyFile && shown.every((p) => insideWorkspace(p, cwd) !== undefined)) return keyFile;
-  const split = shown.map((p) => resolve(cwd, p).split(sep));
+  // Paths inside are relative to the workspace's real path, and paths outside are real already.
+  const root = realish(resolve(cwd)) ?? resolve(cwd);
+  const split = shown.map((p) => resolve(root, p).split(sep));
   const first = split[0] ?? [];
   const common: string[] = [];
   for (const [i, part] of first.entries()) {

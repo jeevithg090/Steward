@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import type { PermissionOption, ToolKind } from "@agentclientprotocol/sdk";
@@ -67,9 +67,10 @@ describe("the ACP tool kind map (plan §3)", () => {
       surface: "file",
       target: { path: "notes/a.md" },
     });
+    // Outside the workspace, where it really is (on macOS /etc is a link to /private/etc).
     expect(permission("edit", { file_path: "/etc/hosts" })).toMatchObject({
       surface: "system",
-      target: { path: "/etc/hosts" },
+      target: { path: join(realpathSync("/etc"), "hosts") },
     });
     expect(permission("edit", {}, { locations: [{ path: `${CWD}/../../escape.txt` }] }).surface).toBe(
       "system",
@@ -176,6 +177,97 @@ describe("the ACP tool kind map (plan §3)", () => {
         ws,
       );
       expect(p.surface).toBe("system");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("follows a link to a file not there yet, since writing through it creates that file", () => {
+    const root = mkdtempSync(join(tmpdir(), "steward-ws-"));
+    try {
+      const ws = join(root, "workspace");
+      const ssh = join(root, "home", ".ssh");
+      mkdirSync(join(ws, "docs"), { recursive: true });
+      mkdirSync(ssh, { recursive: true });
+      // Links that lead nowhere yet: one out of the workspace, one relative from a subfolder, one inside.
+      symlinkSync(join(ssh, "authorized_keys"), join(ws, "notes.md"));
+      symlinkSync("../../home/.ssh/config", join(ws, "docs", "setup.md"));
+      symlinkSync("later.md", join(ws, "soon.md"));
+      // And two links that only lead to each other.
+      symlinkSync("b", join(ws, "a"));
+      symlinkSync("a", join(ws, "b"));
+      expect(insideWorkspace("notes.md", ws)).toBeUndefined();
+      expect(insideWorkspace("docs/setup.md", ws)).toBeUndefined();
+      expect(insideWorkspace("soon.md", ws)).toBe("later.md");
+      expect(insideWorkspace("a", ws)).toBeUndefined();
+      const edit = (file_path: string) =>
+        permissionFrom(
+          { toolCall: { toolCallId: "t", kind: "edit", rawInput: { file_path } }, options: [] },
+          ws,
+        );
+      expect(edit("notes.md")).toMatchObject({
+        surface: "system",
+        target: { path: join(realpathSync(ssh), "authorized_keys") },
+      });
+      expect(edit("docs/setup.md").surface).toBe("system");
+      expect(edit("soon.md")).toMatchObject({ surface: "file", target: { path: "later.md" } });
+      expect(edit("a").surface).toBe("system");
+      expect(fileChangePermission({ fileChanges: { "notes.md": { type: "update" } } }, "c", ws).surface).toBe(
+        "system",
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("judges a path outside the workspace where it really is, so a link in a project folder does not pass its rule", () => {
+    const root = realpathSync(mkdtempSync(join(tmpdir(), "steward-ws-")));
+    try {
+      const ws = join(root, "workspace");
+      const project = join(root, "project");
+      const ssh = join(root, "home", ".ssh");
+      for (const dir of [ws, project, ssh]) mkdirSync(dir, { recursive: true });
+      symlinkSync(ssh, join(project, "notes"));
+      const { governance, rules } = createGateway({ db: memoryDb() });
+      rules.create({
+        name: "Work on the project",
+        effect: "allow",
+        when: `tool.source == "harness:claude-code" && startsWith(target.path, "${project}/")`,
+        description: "",
+        source: "person",
+        enabled: true,
+      });
+      const decide = (p: ReturnType<typeof permission>) =>
+        governance.dryRun({
+          toolCallId: "t1",
+          runId: "r1",
+          threadId: "th1",
+          agentId: "claude-code",
+          actorId: "local",
+          initiator: { kind: "person", id: "local" },
+          tool: { name: p.toolName, kind: p.kind, surface: p.surface, source: "harness:claude-code" },
+          args: p.args,
+          target: p.target,
+          tainted: true,
+        }).effect;
+      const acp = (rawInput: unknown) =>
+        permissionFrom({ toolCall: { toolCallId: "t", kind: "edit", rawInput }, options: [] }, ws);
+      const codex = (...paths: string[]) =>
+        fileChangePermission(
+          { fileChanges: Object.fromEntries(paths.map((p) => [p, { type: "update" }])) },
+          "c",
+          ws,
+        );
+      // The project's own files pass the rule.
+      expect(decide(acp({ file_path: join(project, "a.ts") }))).toBe("allow");
+      expect(decide(codex(join(project, "a.ts"), join(project, "lib", "b.ts")))).toBe("allow");
+      // A file reached through the link is judged where it really is, and asks.
+      const through = join(project, "notes", "authorized_keys");
+      expect(acp({ file_path: through }).target).toEqual({ path: join(ssh, "authorized_keys") });
+      expect(decide(acp({ file_path: through }))).toBe("ask");
+      expect(decide(codex(through))).toBe("ask");
+      expect(decide(codex(join(project, "a.ts"), through))).toBe("ask");
+      expect(codex(through).args.files).toEqual([join(ssh, "authorized_keys")]);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

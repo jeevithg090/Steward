@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -345,7 +345,7 @@ describe("a harness agent over ACP", () => {
     expect(permissions().some((e) => JSON.stringify(e.outcome).includes("always"))).toBe(false);
     const allowed = gateway.audit
       .page({ type: "tool.decided" })
-      .events.filter((e) => e.target?.path === "/etc/hosts" && e.effect === "allow");
+      .events.filter((e) => e.target?.path === join(realpathSync("/etc"), "hosts") && e.effect === "allow");
     // Once for the answer itself, once for the call the rule then let through.
     expect(allowed.map((e) => e.rule?.source)).toEqual(["always", "always"]);
   });
