@@ -128,23 +128,25 @@ describe("htmlToText on large and broken input", () => {
 
   /**
    * Every step that rescanned the text or the input made pages like these take minutes. A clock
-   * limit cannot tell that from a busy machine, so this compares how the time grows instead: four
-   * times the input must take well under 16 times as long, which is what a rescan (quadratic)
-   * gives; a single pass gives about 4. Each size keeps its fastest of up to three runs, the least
-   * the machine let it take. Under 50 ms for the full size is too fast to be quadratic at all.
+   * limit cannot tell that from a busy machine, so this compares how the time grows instead: eight
+   * times the input must take under 24 times as long. A rescan (quadratic) gives about 64, and one
+   * pass about 8 on its own and up to twice that on a loaded machine. Each size keeps its fastest
+   * run, the least the machine let it take, trying again up to five times for 10 s while the
+   * growth looks wrong. Under 50 ms for the full size is too fast to be quadratic at all.
    */
   const expectLinear = (
     make: (chars: number) => string,
     size: number,
     opts?: Parameters<typeof htmlToText>[1],
   ) => {
-    const small = make(size / 4);
+    const small = make(size / 8);
     const large = make(size);
     htmlToText(small, opts);
     let fastestSmall = Number.POSITIVE_INFINITY;
     let fastestLarge = Number.POSITIVE_INFINITY;
-    const linear = () => fastestLarge < 50 || fastestLarge / Math.max(fastestSmall, 1) < 8;
-    for (let run = 0; run < 3 && !(run > 0 && linear()); run++) {
+    const linear = () => fastestLarge < 50 || fastestLarge / Math.max(fastestSmall, 1) < 24;
+    const until = performance.now() + 10_000;
+    for (let run = 0; run < 5 && (run === 0 || (!linear() && performance.now() < until)); run++) {
       fastestSmall = Math.min(fastestSmall, ms(small, opts));
       fastestLarge = Math.min(fastestLarge, ms(large, opts));
     }
