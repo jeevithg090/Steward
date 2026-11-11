@@ -226,6 +226,16 @@ describe("precedence", () => {
     );
   });
 
+  it("a rule on card numbers still sees the card after twenty other findings", () => {
+    const gw = gateway();
+    addRule(gw, "deny", 'contains(findings, "card_number")', "Card numbers never leave");
+    const ids = Array.from({ length: 20 }, (_, i) => `123-45-67${String(i).padStart(2, "0")}`).join(", ");
+    const body = `ids: ${ids}. Card: 4111 1111 1111 1111`;
+    const d = decide(gw, gateCall("mail_send", { to: "sam@example.com", body }));
+    expect(d.effect).toBe("deny");
+    expect(d.rule?.name).toBe("Card numbers never leave");
+  });
+
   it("outbound findings beat allow rules and carry the findings", () => {
     const gw = gateway();
     addRule(gw, "allow", 'tool.name == "mail_send"', "Mail freely");

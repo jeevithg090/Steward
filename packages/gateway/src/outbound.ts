@@ -458,17 +458,30 @@ export function detectSensitive(text: string, level: ScanLevel = "full"): Outbou
   return kept;
 }
 
+/**
+ * One finding per kind and hint, at most `MAX_FINDINGS`, in order. Every kind found is kept, so
+ * twenty ID numbers written first cannot push a card number off the approval card, or past a
+ * rule such as `"card_number" in findings`.
+ */
 function dedupe(hits: readonly OutboundFinding[]): OutboundFinding[] {
   const seen = new Set<string>();
-  const out: OutboundFinding[] = [];
+  const unique: OutboundFinding[] = [];
   for (const h of hits) {
     const key = `${h.kind}\u0000${h.hint}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ kind: h.kind, hint: h.hint, label: h.label });
-    if (out.length >= MAX_FINDINGS) break;
+    unique.push({ kind: h.kind, hint: h.hint, label: h.label });
   }
-  return out;
+  if (unique.length <= MAX_FINDINGS) return unique;
+  const kinds = new Set<FindingKind>();
+  const firstOfKind = new Set<OutboundFinding>();
+  for (const f of unique) {
+    if (kinds.has(f.kind)) continue;
+    kinds.add(f.kind);
+    firstOfKind.add(f);
+  }
+  let room = MAX_FINDINGS - firstOfKind.size;
+  return unique.filter((f) => firstOfKind.has(f) || room-- > 0);
 }
 
 /** Findings in one string, deduplicated, without positions. */

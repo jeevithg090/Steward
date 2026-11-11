@@ -288,6 +288,20 @@ describe("scanOutbound", () => {
     ).toThrow(/too large/);
   });
 
+  it("keeps every kind it found, however many of another kind come first", () => {
+    const ids = Array.from({ length: 30 }, (_, i) => `123-45-67${String(i).padStart(2, "0")}`).join(", ");
+    const body = `ids: ${ids}. Card: 4111 1111 1111 1111. Token ghp_aBcDeF1234567890aBcDeF1234567890abcd`;
+    const inText = scanText(body);
+    const inCall = scanOutbound({ tool: tool("mail_send", "send", "mail"), args: { body } });
+    for (const findings of [inText, inCall]) {
+      expect(findings).toHaveLength(20);
+      expect(new Set(findings.map((f) => f.kind))).toEqual(
+        new Set(["national_id", "card_number", "api_key"]),
+      );
+      expect(findings.find((f) => f.kind === "card_number")?.hint).toBe("•••• 1111");
+    }
+  });
+
   it("describes findings in a sentence", () => {
     const findings = scanText("4242 4242 4242 4242 and my diagnosis");
     expect(describeFindings(findings)).toBe("a card number and a health detail");
