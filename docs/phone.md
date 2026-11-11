@@ -186,11 +186,12 @@ RELAY_PUBLIC_URL=https://relay.example.com \
 pnpm --filter @steward/relay start
 ```
 
-It listens on `127.0.0.1:8790`. Put HTTPS in front of it, for example with Caddy:
+It listens on `127.0.0.1:8791` (`RELAY_PORT` to change it). Put HTTPS in front of it, for example
+with Caddy:
 
 ```text
 relay.example.com {
-  reverse_proxy 127.0.0.1:8790
+  reverse_proxy 127.0.0.1:8791
 }
 ```
 
@@ -227,10 +228,16 @@ is no master secret to hand over or recover. A lost phone is revoked and a new o
 ### What the relay can see
 
 Which phones are paired (by id), when they connect and from which IP address, how large each
-message is and when it was sent, the name of each request (for example `approval.decide`), and your
-phone's push address. Not what any message says: chat, approvals and notifications are sealed with
-each phone's own key before they leave Steward. Push bodies are sealed too, so Apple and Google see
-only an opaque blob and a level.
+message is and when it was sent, the name of each request (for example `approval.decide`), what
+kind of update each message is (a request, a notification, a conversation, by its id) and how
+urgent a notification is, and your phone's push address. So it can tell when Steward is waiting
+for you, and which conversation is active. It never sees what any message says: chat, approvals
+and notifications are sealed with each phone's own key before they leave Steward. Push bodies are
+sealed too, so Apple and Google see only an opaque blob and a level.
+
+**The relay also serves the app itself.** Whoever controls the relay's server could change the
+app's code, and that code holds the phone's keys. The six-digit check catches keys swapped in
+transit, not a changed app. So host the relay somewhere only you control, as you would Steward.
 
 ### Answers from the app
 

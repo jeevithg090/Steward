@@ -293,6 +293,9 @@ describe.runIf(missing.length === 0)("the device listener", () => {
     expect(info.presets.map((p) => p.id)).toEqual(["preset_device_floor", "preset_shortcut_taint"]);
     expect(info.transports.map((x) => x.id)).toEqual(["tailscale", "cloudflared"]);
     expect(info.transports[0]?.command).toContain(String(t.server.services.phoneListener.port));
+    // The relay learns what kind of update each message is, and it serves the app's code.
+    expect(info.relay.sees.join("\n")).toMatch(/what kind of update each message is/i);
+    expect(info.relay.sees.join("\n")).toMatch(/the phone app itself, which it serves/i);
   });
 
   it("refuses everything but pairing without a device token", async () => {

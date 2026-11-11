@@ -512,7 +512,7 @@ export function createRelay(opts: RelayOptions): Relay {
   return {
     store,
     vapid,
-    async listen(port = 8790, host = "127.0.0.1") {
+    async listen(port = 8791, host = "127.0.0.1") {
       server = await new Promise<Server>((done, fail) => {
         const s = serve({ fetch: app.fetch, port, hostname: host }, () => done(s as Server)) as Server;
         s.once("error", fail);
