@@ -1,0 +1,67 @@
+{
+  "name": "Steward e2e bots",
+  "generatedAt": "2026-11-10T22:20:03.038Z",
+  "categories": {
+    "food": "Food & cooking",
+    "health": "Health & fitness",
+    "money": "Money & finance",
+    "investing": "Investing & crypto",
+    "productivity": "Email & productivity",
+    "dev": "Developers & tools",
+    "social": "Social & creators",
+    "video-audio": "Video & audio",
+    "research": "Research & learning",
+    "home": "Home & family",
+    "privacy": "Privacy & scams",
+    "bot-helpers": "Build & manage bots",
+    "games": "Games & fun",
+    "sports": "Sports & fantasy",
+    "travel": "Travel & cars",
+    "business": "Business & marketing",
+    "sales-crm": "Sales & CRM",
+    "work": "Work & teams",
+    "misc": "Everyday tasks"
+  },
+  "bots": [
+    {
+      "id": "e2e-code-reviewer",
+      "name": "C++ (and Rust) reviewer",
+      "pitch": "Reads a change and says what could break. A test bot whose name has characters a pattern would misread.",
+      "category": "dev",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "steward-e2e"
+      },
+      "needs": {
+        "tools": ["file_read"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-11-10T22:19:46.340Z",
+      "packUrl": "packs/e2e-code-reviewer.json"
+    },
+    {
+      "id": "e2e-dinner-planner",
+      "name": "Dinner planner",
+      "pitch": "Plans a week of dinners and writes the shopping list. A test bot for the end-to-end run.",
+      "category": "food",
+      "version": 1,
+      "author": {
+        "kind": "person",
+        "handle": "steward-e2e"
+      },
+      "needs": {
+        "tools": ["web_search", "make_page"],
+        "connectors": [],
+        "model": "any"
+      },
+      "installs": 0,
+      "usedBy": 0,
+      "updatedAt": "2026-11-10T22:19:46.329Z",
+      "packUrl": "packs/e2e-dinner-planner.json"
+    }
+  ]
+}

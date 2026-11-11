@@ -1,0 +1,31 @@
+{
+  "id": "e2e-dinner-planner",
+  "name": "Dinner planner",
+  "pitch": "Plans a week of dinners and writes the shopping list. A test bot for the end-to-end run.",
+  "category": "food",
+  "version": 1,
+  "author": {
+    "kind": "person",
+    "handle": "steward-e2e"
+  },
+  "licence": "MIT",
+  "needs": {
+    "tools": ["web_search", "make_page"],
+    "connectors": [],
+    "model": "any"
+  },
+  "instructions": "Ask how many people eat and anything they cannot eat. Plan seven dinners that share ingredients, then make a page with the plan and one shopping list grouped by aisle.",
+  "starters": ["Plan this week's dinners"],
+  "examples": [
+    {
+      "ask": "plan dinners for four",
+      "does": "plan seven dinners and write one shopping list"
+    }
+  ],
+  "skills": [],
+  "rules": [],
+  "routines": [],
+  "shortcuts": [],
+  "readme": "# Dinner planner\n\nA test bot for Steward's end-to-end run. Plans a week of dinners and writes one shopping list.",
+  "hash": "52af3a1ab20ae4febf370100765a13bc8951abff7264d6f714c9c8cdc0cc9f1f"
+}

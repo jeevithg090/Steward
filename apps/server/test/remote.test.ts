@@ -130,7 +130,7 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
   const tmp = tempDir("steward-relay-");
   const token = randomBytes(32).toString("base64url");
   const phone = () => new Phone(relayUrl);
-  let one: Phone;
+  let shared: Phone | undefined;
 
   beforeAll(async () => {
     push = createServer((req, res) => {
@@ -203,34 +203,36 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
     return p;
   }
 
-  it("pairs with the same code on both screens, once, and Steward records it", async () => {
-    one = await pair();
-    const device = t.server.services.devices.get(one.deviceId);
-    expect(device).toMatchObject({ kind: "pwa", name: "Sam's iPhone" });
-    expect(device?.scopes).not.toContain("approvals:decide");
-    const paired = t.server.services.gateway.audit.page({ type: "device.paired" }).events;
-    expect(paired.some((e) => e.detail.delivery === "relay")).toBe(true);
-  });
+  /**
+   * The phone most tests talk through, paired by whichever test asks first and allowed to say yes,
+   * so every test can run alone, first or in any order.
+   */
+  async function paired(): Promise<Phone> {
+    if (!shared) {
+      const p = await pair();
+      await t.api(`/api/devices/${p.deviceId}`, {
+        method: "PATCH",
+        json: {
+          scopes: ["brief:read", "approvals:read", "approvals:decide", "chat", "tasks", "routines:run"],
+        },
+      });
+      shared = p;
+    }
+    return shared;
+  }
 
-  it("answers the closed list only, and never trusts the relay's method name", async () => {
-    const brief = await one.call<{ say: string }>("brief.get", {});
-    expect(brief.ok).toBe(true);
-    const swapped = await one.call("approval.decide", {}, "brief.get");
-    expect(swapped).toEqual({ ok: false, error: "That request could not be read." });
-    const shell = await one.call("brief.get", {}, "shell.run");
-    expect(shell).toEqual({ ok: false, error: "A phone can't ask for that." });
-  });
-
-  it("streams a chat it started, sealed, and answers a signed yes that is recorded and resumes", async () => {
-    await t.api(`/api/devices/${one.deviceId}`, {
-      method: "PATCH",
-      json: { scopes: ["brief:read", "approvals:read", "approvals:decide", "chat", "tasks", "routines:run"] },
-    });
+  /**
+   * Starts a chat from the phone that asks to send an email, and waits until the run has stopped
+   * for the answer. Looks only at envelopes that came after it started, so an approval an earlier
+   * test left is never mistaken for this one.
+   */
+  async function emailFromPhone(one: Phone): Promise<{ threadId: string; approvalId: string }> {
+    const seen = one.envelopes.length;
     const sent = await one.call<{ threadId: string }>("chat.send", { text: EMAIL_ASK });
     expect(sent.ok).toBe(true);
     const threadId = sent.ok ? sent.value.threadId : "";
     const finished = await waitFor(async () => {
-      for (const e of one.envelopes.filter((x) => x.topic === `thread:${threadId}`)) {
+      for (const e of one.envelopes.slice(seen).filter((x) => x.topic === `thread:${threadId}`)) {
         const event = await one.open<{ type: string }>(e);
         if (event?.type === "RUN_FINISHED") return event;
       }
@@ -238,7 +240,7 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
     });
     expect(finished.type).toBe("RUN_FINISHED");
     const approvalEnvelope = await waitFor(async () => {
-      for (const e of one.envelopes.filter((x) => x.topic === "approvals")) {
+      for (const e of one.envelopes.slice(seen).filter((x) => x.topic === "approvals")) {
         const value = await one.open<{
           type: string;
           item: { id: string; summary: string; canDecideHere: boolean };
@@ -249,7 +251,31 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
       return undefined;
     });
     expect(approvalEnvelope.item.canDecideHere).toBe(true);
-    const approvalId = approvalEnvelope.item.id;
+    return { threadId, approvalId: approvalEnvelope.item.id };
+  }
+
+  it("pairs with the same code on both screens, once, and Steward records it", async () => {
+    const one = await pair();
+    const device = t.server.services.devices.get(one.deviceId);
+    expect(device).toMatchObject({ kind: "pwa", name: "Sam's iPhone" });
+    expect(device?.scopes).not.toContain("approvals:decide");
+    const paired = t.server.services.gateway.audit.page({ type: "device.paired" }).events;
+    expect(paired.some((e) => e.detail.delivery === "relay")).toBe(true);
+  });
+
+  it("answers the closed list only, and never trusts the relay's method name", async () => {
+    const one = await paired();
+    const brief = await one.call<{ say: string }>("brief.get", {});
+    expect(brief.ok).toBe(true);
+    const swapped = await one.call("approval.decide", {}, "brief.get");
+    expect(swapped).toEqual({ ok: false, error: "That request could not be read." });
+    const shell = await one.call("brief.get", {}, "shell.run");
+    expect(shell).toEqual({ ok: false, error: "A phone can't ask for that." });
+  });
+
+  it("streams a chat it started, sealed, and answers a signed yes that is recorded and resumes", async () => {
+    const one = await paired();
+    const { threadId, approvalId } = await emailFromPhone(one);
 
     const answer = await one.signed(approvalId, "once");
     const decided = await one.call<{ approval: { id: string } }>("approval.decide", answer);
@@ -396,6 +422,7 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
   });
 
   it("refuses an answer signed by another key, or for another approval", async () => {
+    const one = await paired();
     const answer = await one.signed("apr_whatever", "refuse");
     const forged = { ...answer, approvalId: "apr_other" };
     expect(await one.call("approval.decide", forged)).toMatchObject({
@@ -437,6 +464,7 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
   });
 
   it("sends a sealed push when the app is not on screen, and none while it is", async () => {
+    const one = await paired();
     const ua = createECDH("prime256v1");
     const uaPublic = new Uint8Array(ua.generateKeys());
     const auth = new Uint8Array(randomBytes(16));
@@ -481,6 +509,11 @@ describe.runIf(missing.length === 0)("the phone app through the relay", () => {
   });
 
   it("keeps no plaintext anywhere the relay keeps or passes on", async () => {
+    // Traffic of its own, whatever ran before: an email the phone asks for, and its refusal.
+    const one = await paired();
+    const { approvalId } = await emailFromPhone(one);
+    expect((await one.call("approval.decide", await one.signed(approvalId, "refuse"))).ok).toBe(true);
+
     const db = relay.store.db;
     const dump = JSON.stringify([
       db.all("SELECT * FROM devices"),

@@ -48,6 +48,19 @@ describe.runIf(missing.length === 0)("an external coding agent, end to end over 
         ].join("\n"),
       );
     });
+    // Every "work" turn edits the project and then runs the tests; this rule lets the edit through,
+    // so the run parks on the tests. Set here, not in a test, so each test works alone.
+    const rule = await t.api("/api/rules", {
+      method: "POST",
+      json: {
+        name: "The fake agent may work on the project",
+        effect: "allow",
+        when: 'tool.source == "harness:fake" && startsWith(target.path, "/srv/project/")',
+        description: "",
+      },
+    });
+    // Without it every "work" turn parks on the edit instead, and the tests fail far from the cause.
+    expect(rule.status).toBe(201);
   });
   afterAll(async () => {
     await t?.close();
@@ -127,15 +140,6 @@ describe.runIf(missing.length === 0)("an external coding agent, end to end over 
   });
 
   it("parks a command for the person and resumes the same turn when the browser answers", async () => {
-    await t.api("/api/rules", {
-      method: "POST",
-      json: {
-        name: "The fake agent may work on the project",
-        effect: "allow",
-        when: 'tool.source == "harness:fake" && startsWith(target.path, "/srv/project/")',
-        description: "",
-      },
-    });
     const threadId = randomUUID();
     const { events, interrupt, approvalId } = await parkedWork(threadId);
     expect(events.some((e) => e.type === "CUSTOM")).toBe(true);

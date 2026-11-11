@@ -1,0 +1,20 @@
+id: e2e-code-reviewer
+name: C++ (and Rust) reviewer
+pitch: Reads a change and says what could break. A test bot whose name has characters a pattern would misread.
+category: dev
+version: 1
+author:
+  kind: person
+  handle: steward-e2e
+licence: MIT
+needs:
+  tools:
+    - file_read
+  connectors: []
+  model: any
+instructions: "Read the files the person names in the workspace. Say in plain words what the change does and what could break, most serious first. Never change a file."
+starters:
+  - Review my change
+examples:
+  - ask: review src/main.cpp
+    does: read it and list what could break

@@ -49,7 +49,14 @@ If you change `.gitleaks.toml`, run `node scripts/check-secret-rules.mjs`: it wr
 in every shape Steward knows (NVIDIA, OpenRouter, xAI, Groq, phone tokens and more) into a
 temporary folder and fails if gitleaks misses any of them.
 
-`pnpm format` fixes formatting. `pnpm dev --help` says what `pnpm dev` starts. The first `pnpm e2e` may need `pnpm exec playwright install chromium`.
+`pnpm format` fixes formatting. `pnpm dev --help` says what `pnpm dev` starts. Before the first `pnpm check` or `pnpm e2e`, run
+`pnpm exec playwright install chromium` once: the computer's unit tests start a real browser too.
+
+`pnpm e2e` uses the same ports as `pnpm dev`. Stop `pnpm dev` first, or give the run ports of its
+own: `STEWARD_E2E_SERVER_PORT=8797 STEWARD_E2E_WEB_PORT=4173 pnpm e2e`. It runs on the scripted
+model, and stops before any spec if the server finds a model key or a relay (`STEWARD_RELAY_URL`),
+in `.env` or in the shell: move `.env` aside while it runs. CI also runs a few specs against the production build, served by the
+Steward server itself; to do the same, run `pnpm build && STEWARD_E2E_BUILT=1 pnpm e2e`.
 
 ## Finding your way
 
@@ -131,7 +138,14 @@ it is otherwise.
   the success: the case that must not happen is the one that matters.
 - End-to-end specs in `tests/e2e` find things by role, label and visible text, the way a screen
   reader would. If a spec cannot find a control that way, the control needs fixing, not the spec.
-- Tests never need a network or a key. Use the scripted model and the demo inbox.
+- Tests never need a network or a key. Use the scripted model and the demo inbox. A web test that
+  calls `fetch` without `mockFetch` fails, and an e2e spec fails on a console error, an uncaught
+  error in the page, or a request to any host but this machine.
+- Each test sets up what it needs and cleans up after itself: a test must pass alone, and in any
+  order. CI runs the unit tests shuffled; to repeat a failure there, run
+  `pnpm test --sequence.shuffle --sequence.seed=<the seed in the step's name>`.
+- No test waits on the clock to prove something is fast. Compare how the time grows with the input
+  instead, so a busy machine cannot fail it.
 
 ## Accessibility checklist for anything on screen
 
@@ -152,8 +166,10 @@ it is otherwise.
 - Changes to the gateway, the computer, the connectors' network guard or the server's HTTP guards
   get a second reviewer. Say in the description what could go wrong and how the tests show it does
   not.
-- The pull request template has a short checklist. CI runs `pnpm typecheck`, `pnpm lint`,
-  `pnpm test` and `pnpm e2e` on Node 24 and 26.
+- The pull request template has a short checklist. CI (`.github/workflows/ci.yml`) is set up to
+  run `pnpm typecheck`, `pnpm lint`, both builds, `pnpm test` in a random order, the triage rules
+  and `pnpm e2e` on Node 24 and 26. It is not running on GitHub yet, so run `pnpm check` and
+  `pnpm e2e` yourself before you push.
 
 ## Licence
 

@@ -1,3 +1,4 @@
+import { existsSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
@@ -14,21 +15,47 @@ import { DEVICE_PORT, SERVER_PORT, SERVER_URL, WEB_PORT, WEB_URL } from "./env.t
  *                                  run beside `pnpm dev`, on ports of its own. Any free web port
  *                                  works: Vite's proxy passes the page's own address through, so
  *                                  the server needs no development origins (STEWARD_DEV_ORIGINS).
+ *   pnpm build && STEWARD_E2E_BUILT=1 pnpm e2e
+ *                                  also run the "built" project: a few specs against the
+ *                                  production build, served by the Steward server itself with
+ *                                  its real headers, as an install runs it. CI always does.
  *
- * Each run gets a fresh data folder under test-results/, so a run never reads or changes the data
- * in your own .steward-data. Reusing servers is opt-in for the same reason: a server you started
- * yourself is pointed at your own data, and the tests add rules and refuse emails.
+ * Each run gets a fresh data folder under test-results/e2e-data (the newest three are kept), so a
+ * run never reads or changes the data in your own .steward-data. Reusing servers is opt-in for the
+ * same reason: a server you started yourself is pointed at your own data, and the tests add rules
+ * and refuse emails.
  */
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const CI = Boolean(process.env.CI);
 
 // Playwright loads this file in the runner and again in each worker. Fixing the folder in the
-// environment the first time means the workers, which inherit it, agree with the server.
-process.env.STEWARD_E2E_DATA_DIR ??= join(REPO_ROOT, "test-results", "e2e-data", `run-${Date.now()}`);
+// environment the first time means the workers, which inherit it, agree with the server. The
+// first load also clears out the folders of older runs: with this one, the newest three are kept.
+if (!process.env.STEWARD_E2E_DATA_DIR) {
+  const runs = join(REPO_ROOT, "test-results", "e2e-data");
+  removeOlderRuns(runs, 2);
+  process.env.STEWARD_E2E_DATA_DIR = join(runs, `run-${Date.now()}`);
+}
 const DATA_DIR = process.env.STEWARD_E2E_DATA_DIR;
 
 const reuseExistingServer = !CI && process.env.STEWARD_E2E_REUSE === "1";
+
+// The server serves apps/web/dist when it finds it at start. Opt-in outside CI, so an old build
+// left in the folder never fails a run that did not ask for it.
+const BUILT = CI || process.env.STEWARD_E2E_BUILT === "1";
+if (BUILT && !existsSync(join(REPO_ROOT, "apps", "web", "dist", "index.html"))) {
+  throw new Error("The built project needs the production build first: run `pnpm build`.");
+}
+
+/** Deletes the `run-<time>` folders in `dir` but the newest `keep`, which a run still going may use. */
+function removeOlderRuns(dir: string, keep: number): void {
+  if (!existsSync(dir)) return;
+  const runs = readdirSync(dir)
+    .filter((name) => /^run-\d+$/.test(name))
+    .sort((a, b) => Number(b.slice(4)) - Number(a.slice(4)));
+  for (const name of runs.slice(keep)) rmSync(join(dir, name), { recursive: true, force: true });
+}
 
 export default defineConfig({
   testDir: ".",
@@ -52,7 +79,24 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    // Through the Vite dev server, which proxies /api and /ws to the Steward server.
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // The production build, from the Steward server's own origin. A failure only the bundler or
+    // the server's Content-Security-Policy causes shows here: the page fixture fails on the
+    // console error a blocked resource leaves.
+    ...(BUILT
+      ? [
+          {
+            name: "built",
+            testMatch: ["chat.spec.ts", "approval.spec.ts", "knowledge.spec.ts"],
+            use: { ...devices["Desktop Chrome"], baseURL: SERVER_URL },
+          },
+        ]
+      : []),
+  ],
+  // Runs once both servers answer, before any spec.
+  globalSetup: "./global-setup.ts",
   webServer: [
     {
       name: "server",
@@ -69,7 +113,12 @@ export default defineConfig({
         STEWARD_HOST: "127.0.0.1",
         STEWARD_HEADFUL: "0",
         STEWARD_ALLOW_PRIVATE_HOSTS: "0",
+        // A small directory of its own, so the bots that ship with Steward never change what is tested.
+        STEWARD_DIRECTORY_URL: join(REPO_ROOT, "tests", "e2e", "fixtures", "directory", "index.json"),
+        // Set here, so a value in the shell or in .env cannot move the phone port off this machine.
+        STEWARD_DEVICE_HOST: "127.0.0.1",
         // Ignore a STEWARD_ENV_FILE from the shell: the run must not pick up someone's real keys.
+        // The server still reads <repo>/.env, so global-setup.ts stops the run if a key or a relay got in.
         STEWARD_ENV_FILE: "",
       },
       reuseExistingServer,

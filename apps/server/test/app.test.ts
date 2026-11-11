@@ -644,19 +644,23 @@ describe.runIf(missing.length === 0)(
   "the model in Settings never sends a key to another provider's address",
   () => {
     let t: TestServer;
+    // What Settings shows before anyone changes it. Read here, not in a test, because the other
+    // tests change the model and may run first.
+    let atStart: Settings;
     beforeAll(async () => {
       t = await startTestServer({
         STEWARD_MODEL_PROVIDER: "openrouter",
         OPENROUTER_API_KEY: "sk-or-test",
         OPENAI_API_KEY: "sk-openai-test",
       });
+      atStart = (await t.api<Settings>("/api/settings")).body;
     });
     afterAll(async () => {
       await t?.close();
     });
 
-    it("shows no address for a provider with its own endpoint", async () => {
-      const { body } = await t.api<Settings>("/api/settings");
+    it("shows no address for a provider with its own endpoint", () => {
+      const body = atStart;
       expect(body.model.provider).toBe("openrouter");
       // The page sends this back with the next choice, whatever provider that is.
       expect(body.model.baseUrl).toBeUndefined();

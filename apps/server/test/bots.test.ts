@@ -25,6 +25,35 @@ import { countsEndpoint, directoryError } from "../src/bots/service.ts";
 import { missingPackages, tempDir } from "./helpers.ts";
 import { startTestServer, type TestServer } from "./server.ts";
 
+/** What a test server held before a test: the ids of its rules and skills. */
+interface Baseline {
+  rules: Set<string>;
+  skills: Set<string>;
+}
+
+async function baselineOf(t: TestServer): Promise<Baseline> {
+  return {
+    rules: new Set((await t.api<Rule[]>("/api/rules")).body.map((r) => r.id)),
+    skills: new Set((await t.api<Skill[]>("/api/skills")).body.map((s) => s.id)),
+  };
+}
+
+/**
+ * Takes away every bot a test installed, and every rule and skill it added, so each test starts
+ * from the same server whatever ran before it, and passes alone or shuffled.
+ */
+async function resetTo(t: TestServer, baseline: Baseline): Promise<void> {
+  for (const bot of (await t.api<InstalledBot[]>("/api/bots/installed")).body) {
+    await t.api(`/api/bots/installed/${encodeURIComponent(bot.id)}`, { method: "DELETE" });
+  }
+  for (const rule of (await t.api<Rule[]>("/api/rules")).body) {
+    if (!baseline.rules.has(rule.id)) await t.api(`/api/rules/${rule.id}`, { method: "DELETE" });
+  }
+  for (const skill of (await t.api<Skill[]>("/api/skills")).body) {
+    if (!baseline.skills.has(skill.id)) await t.api(`/api/skills/${skill.id}`, { method: "DELETE" });
+  }
+}
+
 // ── Fixtures: a directory of two packs, written by hand as the builder would write them ─────────
 
 const RENT_SCOUT: BotPack = {
@@ -246,16 +275,19 @@ describe("directoryFetch", () => {
 describe.runIf(missing.length === 0)("the bot directory over HTTP", () => {
   let t: TestServer;
   let directory: ReturnType<typeof writeDirectory>;
+  let baseline: Baseline;
   beforeAll(async () => {
     directory = writeDirectory([RENT_SCOUT, SHELL_HELPER]);
     t = await startTestServer({ STEWARD_DIRECTORY_URL: directory.indexPath, STEWARD_DIRECTORY_COUNTS: "1" });
+    baseline = await baselineOf(t);
   });
   afterAll(async () => {
     await t?.close();
     directory?.remove();
   });
-  afterEach(() => {
+  afterEach(async () => {
     vi.restoreAllMocks();
+    await resetTo(t, baseline);
   });
 
   it("lists and filters the directory, with its categories", async () => {
@@ -665,13 +697,18 @@ describe.runIf(missing.length === 0 && botRulesSupported)(
   () => {
     let t: TestServer;
     let directory: ReturnType<typeof writeDirectory>;
+    let baseline: Baseline;
     beforeAll(async () => {
       directory = writeDirectory([RENT_SCOUT, SHELL_HELPER]);
       t = await startTestServer({ STEWARD_DIRECTORY_URL: directory.indexPath });
+      baseline = await baselineOf(t);
     });
     afterAll(async () => {
       await t?.close();
       directory?.remove();
+    });
+    afterEach(async () => {
+      await resetTo(t, baseline);
     });
 
     it("installs from the directory: the agent, the skill, the rule (source bot) and a paused routine", async () => {
@@ -830,6 +867,11 @@ describe.runIf(missing.length === 0 && botRulesSupported)(
     });
 
     it("removes exactly what a bot brought: another bot's and the person's own things survive", async () => {
+      const scout = await t.api<InstalledBot>("/api/bots/install", {
+        method: "POST",
+        json: { packUrl: "packs/rent-scout.json" },
+      });
+      expect(scout.status).toBe(201);
       const shell = await t.api<InstalledBot>("/api/bots/install", {
         method: "POST",
         json: { packUrl: "packs/shell-helper.json" },

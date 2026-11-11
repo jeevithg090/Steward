@@ -105,6 +105,8 @@ const listed = vi.hoisted(() => ({ approvals: [] as unknown[] }));
 vi.mock("@/lib/api.ts", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api.ts")>()),
   useInfo: () => ({ data: info.data }),
+  // No agents to choose between, so the empty conversation draws no picker. Unmocked, it asked a real port.
+  useAgents: () => ({ data: { agents: [] } }),
   useApprovals: () => ({ data: listed.approvals }),
   useApproval: () => ({ data: undefined }),
   useSkills: () => ({ data: [] }),

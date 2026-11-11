@@ -120,20 +120,23 @@ afterAll(async () => {
   if (dataDir) await rm(dataDir, { recursive: true, force: true });
 });
 
-// Several tests start a browser of their own, and on a busy machine one start can take 15 s.
+// Several tests start or restart a real browser, and on a busy machine one start can take 15 s:
+// far longer than the node project's 30 s allows for a test that starts several.
 describe("the computer, in real Chromium", { timeout: 90_000 }, () => {
   it("starts on first use, with its profile and workspace in place", async () => {
-    expect(manager.status("alpha")).toMatchObject({
-      agentId: "alpha",
+    // An agent no other test uses, so this sees a computer that has never started, in any order.
+    expect(manager.status("fresh")).toMatchObject({
+      agentId: "fresh",
       running: false,
       controller: "agent",
       viewport: { width: 1280, height: 800 },
     });
     expect(() => manager.status("../escape")).toThrow(/Agent ids/);
-    await manager.get("alpha");
-    expect(manager.status("alpha").running).toBe(true);
-    expect((await stat(join(dataDir, "computers/alpha/workspace"))).isDirectory()).toBe(true);
-    expect((await stat(join(dataDir, "computers/alpha/profile/Default"))).isDirectory()).toBe(true);
+    const c = await manager.get("fresh");
+    expect(manager.status("fresh").running).toBe(true);
+    expect((await stat(join(dataDir, "computers/fresh/workspace"))).isDirectory()).toBe(true);
+    expect((await stat(join(dataDir, "computers/fresh/profile/Default"))).isDirectory()).toBe(true);
+    await c.close();
   });
 
   it("reads pages as text with refs, and clicks, types and chooses by ref", async () => {

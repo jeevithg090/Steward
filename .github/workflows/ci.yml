@@ -1,6 +1,7 @@
-# Typecheck, lint, unit tests and end-to-end tests on every push to main and every pull request,
-# on the oldest and newest Node versions Steward supports. Everything runs with the scripted model
-# and the demo inbox, so CI needs no secrets and sends nothing to any model provider.
+# Typecheck, lint, build, unit tests, the triage rules and end-to-end tests on every push to main
+# and every pull request, on the oldest and newest Node versions Steward supports. Everything runs
+# with the scripted model and the demo inbox, so CI needs no secrets and sends nothing to any model
+# provider.
 
 name: CI
 
@@ -21,7 +22,7 @@ jobs:
   check:
     name: Check (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -46,27 +47,48 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Chromium comes before the unit tests: the computer's tests start a real browser.
+      # The cache is keyed on Playwright's own version, so a dependency bump elsewhere keeps it.
+      - name: Find Playwright's version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright's browsers
+        id: browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium for Playwright
+        if: steps.browsers.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      # The browser came from the cache, but the system libraries it needs did not.
+      - name: Install Chromium's system libraries
+        if: steps.browsers.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # Every package, and the end-to-end specs.
       - name: Typecheck
         run: pnpm typecheck
-
-      - name: Typecheck the end-to-end tests
-        run: pnpm exec tsc -p tests/e2e/tsconfig.json
 
       - name: Lint
         run: pnpm lint
 
-      - name: Unit tests
-        run: pnpm test
+      - name: Build the web app and the phone app
+        run: pnpm build && pnpm --filter @steward/web build:phone
 
-      - name: Cache Playwright's browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      # In a random order, so a test that passes only after another one fails here. To repeat a
+      # failure, run `pnpm test --sequence.shuffle --sequence.seed=<the seed in this step's name>`.
+      - name: Unit tests (seed ${{ github.run_id }})
+        run: pnpm test --sequence.shuffle --sequence.seed=${{ github.run_id }}
 
-      - name: Install Chromium for Playwright
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Triage rules agree with the labelled mail
+        run: pnpm eval:triage --rules-only
 
+      # With CI set, this also runs the "built" project: a few specs against the production build
+      # from the step above, served by the Steward server with its real headers.
       - name: End-to-end tests
         run: pnpm e2e
 

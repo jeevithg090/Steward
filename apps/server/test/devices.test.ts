@@ -532,17 +532,31 @@ describe.runIf(missing.length === 0)("the device listener", () => {
     expect(t.server.services.gateway.audit.verify().ok).toBe(true);
   });
 
+  // On a server of its own: using up the pairing limit here would refuse every later pairing in
+  // this file, so the tests above would pass only when they happen to run first.
   it("limits pairing tries", async () => {
-    let limited = false;
-    for (let i = 0; i < 12 && !limited; i++) {
-      const res = await device("/device/pair", {
-        json: { code: "NOPE2345", deviceName: "x", kind: "shortcut" },
-      });
-      if (res.status === 429) {
-        limited = true;
-        expect(res.headers.get("retry-after")).toBeTruthy();
-      } else expect(res.status).toBe(400);
+    const own = await startTestServer();
+    try {
+      const base = `http://127.0.0.1:${own.server.services.phoneListener.port}`;
+      let limited = false;
+      for (let i = 0; i < 12 && !limited; i++) {
+        const res = await fetch(`${base}/device/pair`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-steward-shortcut": `steward@${STEWARD_SHORTCUT.version}`,
+          },
+          body: JSON.stringify({ code: "NOPE2345", deviceName: "x", kind: "shortcut" }),
+        });
+        await res.arrayBuffer();
+        if (res.status === 429) {
+          limited = true;
+          expect(res.headers.get("retry-after")).toBeTruthy();
+        } else expect(res.status).toBe(400);
+      }
+      expect(limited).toBe(true);
+    } finally {
+      await own.close();
     }
-    expect(limited).toBe(true);
   });
 });

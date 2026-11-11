@@ -1,0 +1,21 @@
+id: e2e-dinner-planner
+name: Dinner planner
+pitch: Plans a week of dinners and writes the shopping list. A test bot for the end-to-end run.
+category: food
+version: 1
+author:
+  kind: person
+  handle: steward-e2e
+licence: MIT
+needs:
+  tools:
+    - web_search
+    - make_page
+  connectors: []
+  model: any
+instructions: "Ask how many people eat and anything they cannot eat. Plan seven dinners that share ingredients, then make a page with the plan and one shopping list grouped by aisle."
+starters:
+  - Plan this week's dinners
+examples:
+  - ask: plan dinners for four
+    does: plan seven dinners and write one shopping list
