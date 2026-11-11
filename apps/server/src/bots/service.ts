@@ -9,7 +9,14 @@ import {
   validatePack,
 } from "@steward/bots";
 import type { Db } from "@steward/db";
-import { gateCallFor, type StewardGateway } from "@steward/gateway";
+import {
+  CelEngine,
+  CONTEXT_SCHEMA,
+  decide,
+  gateCallFor,
+  neutralContext,
+  type StewardGateway,
+} from "@steward/gateway";
 import {
   type BotListing,
   type BotPack,
@@ -23,6 +30,7 @@ import {
   type McpManager,
   mcpToolName,
   parseMcpToolName,
+  type Rule,
   TOOL_PLAIN_WORDS,
   TOOLS,
 } from "@steward/shared";
@@ -141,6 +149,9 @@ export interface BotServiceDeps {
  * away exactly that.
  */
 export class BotService {
+  /** Decides previews with the gateway's own policy, over the rules the pack would bring. */
+  private readonly engine = new CelEngine(CONTEXT_SCHEMA, neutralContext);
+
   constructor(private readonly deps: BotServiceDeps) {}
 
   /** Every tool name this Steward has: the built-ins and the tools of connected MCP servers. */
@@ -242,20 +253,68 @@ export class BotService {
   }
 
   /**
-   * What the pack would mean for this person: what it may do without asking is decided by the real
-   * gateway (a representative call per tool, untainted), never declared by the pack.
+   * The rules the bot's agent would be decided by once this pack is in: every rule but the ones the
+   * installed version brought (an install or update takes those away), plus the pack's own ask and
+   * deny rules, limited to the bot as `install` writes them. A rule that cannot be read is left out:
+   * such a pack is refused anyway.
+   */
+  private rulesWith(pack: BotPack): Rule[] {
+    const { gateway, store } = this.deps;
+    const replaced = new Set(store.get(pack.id)?.ruleIds ?? []);
+    const others = gateway.rules
+      .current()
+      .filter((rule) => !(rule.source === "bot" && replaced.has(rule.id)));
+    const createdAt = new Date().toISOString();
+    const own: Rule[] = [];
+    pack.rules.forEach((rule, i) => {
+      if (rule.effect !== "ask" && rule.effect !== "deny") return;
+      let when: string;
+      try {
+        gateway.rules.validate(rule.when);
+        when = scopeToBot(pack.id, rule.when);
+        gateway.rules.validate(when);
+      } catch {
+        return;
+      }
+      own.push({
+        id: `preview:${pack.id}:${i}`,
+        name: clip(`${pack.name}: ${rule.name}`, RULE_NAME_MAX),
+        effect: rule.effect,
+        when,
+        description: rule.description,
+        source: "bot",
+        enabled: true,
+        createdAt,
+      });
+    });
+    return [...others, ...own];
+  }
+
+  /**
+   * What the pack would mean for this person: what it may do without asking is decided by the
+   * gateway's own policy (a representative call per tool, untainted) over the rules the pack would
+   * bring, never declared by the pack. For an update, the installed version's rules are not counted:
+   * they go when the update applies.
    */
   preview(pack: BotPack): BotPreview {
-    const { gateway, actorId } = this.deps;
+    const { actorId } = this.deps;
     const known = new Set(this.knownTools());
     const present = new Set(this.connectors());
     const allowed: string[] = [];
     const asks: string[] = [];
+    let rules: Rule[] | undefined;
+    try {
+      rules = this.rulesWith(pack);
+    } catch {
+      rules = undefined; // The rules could not be read: nothing counts as running without asking.
+    }
     for (const tool of dedupe(pack.needs.tools)) {
       if (!known.has(tool)) continue;
       let decision: Decision | undefined;
       try {
-        decision = gateway.governance.dryRun(gateCallFor({ tool, args: {}, agentId: pack.id, actorId }));
+        decision = rules
+          ? decide(this.engine, rules, gateCallFor({ tool, args: {}, agentId: pack.id, actorId })).decision
+          : undefined;
       } catch {
         decision = undefined; // Deciding failed: not something it may do without asking.
       }

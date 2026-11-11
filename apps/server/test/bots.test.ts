@@ -710,6 +710,48 @@ describe.runIf(missing.length === 0 && botRulesSupported)(
       expect((await t.api("/api/bots/installed/drafts-only", { method: "DELETE" })).status).toBe(200);
     });
 
+    it("previews what a pack may do under its own rules, never the installed version's", async () => {
+      const v1: BotPack = {
+        ...NOTE_TAKER,
+        id: "careful-notes",
+        name: "Careful Notes",
+        version: 1,
+        needs: { tools: ["file_write"], connectors: [], model: "any" },
+        skills: [],
+        rules: [{ name: "Ask before writing", effect: "ask", when: 'tool.kind == "write"', description: "" }],
+      };
+      const preview = async (pack: BotPack) =>
+        (await t.api<BotPreview>("/api/bots/preview", { method: "POST", json: { pack } })).body;
+
+      // Not installed yet: its own rule already decides, so writing asks.
+      const fresh = await preview(v1);
+      expect(fresh.mayDoWithoutAsking).not.toContain("write files in its workspace");
+      expect(fresh.asksBefore).toContain("write files in its workspace");
+
+      expect((await t.api("/api/bots/install", { method: "POST", json: { pack: v1 } })).status).toBe(201);
+      // Version 2 drops that rule and adds a tool: both now run without asking, and the update says so.
+      const v2: BotPack = {
+        ...v1,
+        version: 2,
+        needs: { ...v1.needs, tools: ["file_write", "task_update"] },
+        rules: [],
+      };
+      const next = await preview(v2);
+      expect(next.mayDoWithoutAsking).toEqual(["write files in its workspace", "change tasks"]);
+      expect(next.asksBefore).not.toContain("write files in its workspace");
+      expect(next.changes).toEqual([
+        "New: it may change tasks without asking.",
+        "Drops the rule “Ask before writing” (it asks first).",
+      ]);
+      // Previewing changes nothing: the installed version still asks before writing.
+      const decide = (tool: string) =>
+        t.server.services.gateway.governance.dryRun(
+          gateCallFor({ tool, args: {}, agentId: "careful-notes", actorId: "local" }),
+        ).effect;
+      expect(decide("file_write")).toBe("ask");
+      expect((await t.api("/api/bots/installed/careful-notes", { method: "DELETE" })).status).toBe(200);
+    });
+
     it("limits the rules of a bot installed before rules were scoped, leaving edited ones alone", async () => {
       const { gateway, installedBots, bots } = t.server.services;
       const pack: BotPack = {
