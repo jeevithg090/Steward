@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { DEVICE_SCOPES } from "@steward/shared";
-import { parse } from "yaml";
+import { type ConfigSource, configMessage, DEVICE_SCOPES, describeConfigIssues } from "@steward/shared";
+import { parseDocument } from "yaml";
 import { z } from "zod";
 import type { TenantShortcut } from "./catalogue.ts";
 
@@ -11,47 +11,66 @@ import type { TenantShortcut } from "./catalogue.ts";
  * for something; it adds no permission.
  */
 
-const Shortcut = z.object({
-  id: z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,60}$/, "an id is lower case letters, digits and -"),
-  title: z.string().min(1).max(60),
-  description: z.string().min(1).max(300),
-  siri: z.string().min(1).max(60).optional(),
-  skill: z
-    .string()
-    .regex(/^[a-z0-9][a-z0-9-]{0,40}$/)
-    .optional(),
-  prompt: z.string().min(1).max(2000),
-  share: z.boolean().optional(),
-  scopes: z.array(z.enum(DEVICE_SCOPES)).optional(),
-});
+const Shortcut = z
+  .object({
+    id: z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,60}$/, "must be lower case letters, digits and -"),
+    title: z.string().min(1).max(60),
+    description: z.string().min(1).max(300),
+    siri: z.string().min(1).max(60).optional(),
+    skill: z
+      .string()
+      .regex(/^[a-z0-9][a-z0-9-]{0,40}$/, "must be a skill's name from skills.yaml, such as scam-check")
+      .optional(),
+    prompt: z.string().min(1).max(2000),
+    share: z.boolean().optional(),
+    scopes: z.array(z.enum(DEVICE_SCOPES)).optional(),
+  })
+  .strict();
 
-const File = z.object({ shortcuts: z.array(Shortcut).max(20).default([]) });
+const File = z.object({ shortcuts: z.array(Shortcut).max(20).default([]) }).strict();
+
+const FILE = "shortcuts.yaml";
 
 export class TenantShortcutsError extends Error {
   override name = "TenantShortcutsError";
 }
 
-/** Reads the tenant's shortcuts; none when the file is absent. Throws with the file named when it is wrong. */
-export function loadTenantShortcuts(tenantDir: string): TenantShortcut[] {
-  const path = join(tenantDir, "shortcuts.yaml");
+export interface LoadShortcutsOptions {
+  /** The package's skills, from skills.yaml. Given, a shortcut must name one of them. */
+  skills?: readonly string[];
+}
+
+/**
+ * Reads the tenant's shortcuts; none when the file is absent. Throws a plain message that starts
+ * with "shortcuts.yaml line N:" when it is wrong: a misspelled field, or a skill the package lacks.
+ */
+export function loadTenantShortcuts(tenantDir: string, opts: LoadShortcutsOptions = {}): TenantShortcut[] {
+  const path = join(tenantDir, FILE);
   if (!existsSync(path)) return [];
-  let raw: unknown;
-  try {
-    raw = parse(readFileSync(path, "utf8")) ?? {};
-  } catch (err) {
-    throw new TenantShortcutsError(`${path} is not valid YAML: ${(err as Error).message}`);
-  }
-  const parsed = File.safeParse(raw);
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    throw new TenantShortcutsError(
-      `${path}: ${issue?.path.join(".") ?? ""} ${issue?.message ?? "is not valid"}`.trim(),
-    );
-  }
+  const text = readFileSync(path, "utf8");
+  const doc = parseDocument(text);
+  const broken = doc.errors[0];
+  if (broken) throw new TenantShortcutsError(`${FILE}: is not valid YAML: ${broken.message.split("\n")[0]}`);
+  const value: unknown = doc.toJS() ?? {};
+  const source: ConfigSource = { text, doc, value };
+  const parsed = File.safeParse(value);
+  if (!parsed.success)
+    throw new TenantShortcutsError(describeConfigIssues(FILE, parsed.error.issues, source));
   const ids = new Set<string>();
-  for (const s of parsed.data.shortcuts) {
-    if (ids.has(s.id)) throw new TenantShortcutsError(`${path}: the id "${s.id}" is used twice.`);
+  const skills = opts.skills ? new Set(opts.skills) : undefined;
+  for (const [i, s] of parsed.data.shortcuts.entries()) {
+    if (ids.has(s.id)) {
+      throw new TenantShortcutsError(
+        configMessage(FILE, ["shortcuts", i, "id"], `"${s.id}" is used twice`, source),
+      );
+    }
     ids.add(s.id);
+    if (skills && s.skill && !skills.has(s.skill)) {
+      const known = skills.size > 0 ? `skills.yaml has: ${[...skills].join(", ")}` : "skills.yaml has none";
+      throw new TenantShortcutsError(
+        configMessage(FILE, ["shortcuts", i, "skill"], `no skill named "${s.skill}" (${known})`, source),
+      );
+    }
   }
   return parsed.data.shortcuts.map((s) => ({
     id: s.id,

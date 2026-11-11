@@ -9,4 +9,4 @@ export {
   type PhoneProfile,
   type TenantShortcut,
 } from "./catalogue.ts";
-export { loadTenantShortcuts, TenantShortcutsError } from "./tenant.ts";
+export { type LoadShortcutsOptions, loadTenantShortcuts, TenantShortcutsError } from "./tenant.ts";

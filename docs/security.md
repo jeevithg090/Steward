@@ -199,7 +199,11 @@ redirects itself and checks each hop.
 - **Redacted record.** Values under names like `password`, `token`, `secret`, `authorization`,
   `cookie` and `api_key` are replaced with `[redacted]` before anything is written or hashed.
 - **Commands never see Steward's keys.** The shell gets an allow-listed environment.
-- **No telemetry.** Nothing is sent anywhere except to the model provider you chose.
+- **No telemetry.** Steward reports nothing about you or your use to anyone, and switches
+  CopilotKit's own telemetry off at start-up. Besides the model provider you chose, it reaches only
+  what you or the agent ask for: the pages its browser opens, `web_fetch`, web searches (sent to
+  DuckDuckGo), your connected apps, and a bot directory if you point it at a hosted one. When you
+  dictate, your browser may send the audio to its own speech service; the microphone button says so.
 
 If you paste a secret into the chat yourself, it is part of the conversation: it is stored, and it
 is sent to the model provider. Use the secret box instead.
@@ -276,8 +280,8 @@ for how to anchor it so that a wholesale rewrite is detectable too.
 Plainly, so nobody relies on something that is not there:
 
 - **No container isolation.** The agent's browser and shell run on your machine as your user.
-  OpenBot runs each agent's computer in its own container; Steward v0.1 does not. A command you
-  allow can do anything you can.
+  OpenBot runs each person's Bots in a container (an Isolated Bot in one of its own, optionally
+  under gVisor); Steward v0.1 has no container. A command you allow can do anything you can.
 - **No sign-in and no multi-user isolation.** Anyone who can reach the port is you. Keep it on
   loopback, or put authentication in front of it.
 - **Your own machine.** Anyone with access to your user account can read `.steward-data/`

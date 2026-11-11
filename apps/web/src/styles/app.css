@@ -123,6 +123,24 @@
   --st-focus-offset: 3px;
 }
 
+/*
+ * A tenant's own accent (brand.yaml). src/app/brand.ts works out its light, dark and more-contrast
+ * shades, each checked for contrast, and sets them on <html> with data-brand. Steward's own teal
+ * sets nothing and keeps the hand-tuned values above.
+ */
+:root[data-brand] {
+  --st-accent: var(--st-brand-accent);
+  --st-accent-hover: var(--st-brand-hover);
+  --st-accent-soft: var(--st-brand-soft);
+  --st-focus: var(--st-brand-accent);
+}
+
+:root[data-brand][data-contrast="more"] {
+  --st-accent: var(--st-brand-more);
+  --st-accent-hover: var(--st-brand-more-hover);
+  --st-focus: light-dark(#000000, #ffffff);
+}
+
 /* Text size scales the root, so every rem follows. 100 is the browser's own size. */
 :root[data-text="115"] {
   font-size: 115%;

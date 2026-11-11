@@ -57,10 +57,11 @@ from the catalogue, not from the caller.
 
 ## The web, without the browser
 
-| Tool         | Kind | Surface | Taints | By default | What it does                                                                                         |
-| ------------ | ---- | ------- | ------ | ---------- | ---------------------------------------------------------------------------------------------------- |
-| `web_search` | read | web     | yes    | runs       | Searches the web (DuckDuckGo's HTML endpoint, no key needed) and returns titles, links and snippets. |
-| `web_fetch`  | read | web     | yes    | runs       | Fetches a public page as readable text. Private and metadata addresses are refused.                  |
+| Tool             | Kind | Surface | Taints | By default | What it does                                                                                                                                                     |
+| ---------------- | ---- | ------- | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `web_search`     | read | web     | yes    | runs       | Searches the web (DuckDuckGo's HTML endpoint, no key needed) and returns titles, links and snippets.                                                             |
+| `web_fetch`      | read | web     | yes    | runs       | Fetches a public page as readable text. Private and metadata addresses are refused.                                                                              |
+| `directory_find` | read | web     | yes    | runs       | Finds ready-made bots in the bot directory for a job. It only suggests: the person adds a bot themselves. Listing text is written by other people, so it taints. |
 
 ## Steward's own state
 

@@ -1,7 +1,13 @@
 import { accessSync, constants, existsSync, readFileSync, statSync } from "node:fs";
 import { delimiter, dirname, isAbsolute, join } from "node:path";
-import type { HarnessInfo, HarnessProfile } from "@steward/shared";
-import { parse as parseYaml } from "yaml";
+import {
+  type ConfigSource,
+  configMessage,
+  describeConfigIssues,
+  type HarnessInfo,
+  type HarnessProfile,
+} from "@steward/shared";
+import { parseDocument } from "yaml";
 import { z } from "zod";
 import { looksLikeKey } from "./secrets.ts";
 
@@ -120,32 +126,21 @@ const profileEntry = z
 
 const harnessesFile = z.object({ harnesses: z.array(profileEntry).default([]) }).strict();
 
-function describe(issues: z.core.$ZodIssue[]): string {
-  return issues
-    .slice(0, 6)
-    .map((issue) => {
-      const where = issue.path.reduce<string>(
-        (out, part) =>
-          typeof part === "number" ? `${out}[${part}]` : out ? `${out}.${String(part)}` : String(part),
-        "",
-      );
-      const message =
-        issue.code === "unrecognized_keys"
-          ? `unknown field ${issue.keys.map((k) => `"${k}"`).join(", ")}`
-          : issue.message;
-      return where ? `${where}: ${message}` : message;
-    })
-    .join("; ");
-}
-
-/** Validates the parsed contents of a `harnesses.yaml`. Throws naming the field that is wrong. */
-export function parseHarnesses(value: unknown): HarnessProfile[] {
+/**
+ * Validates the parsed contents of a `harnesses.yaml`. Throws naming the field that is wrong, and
+ * its line when `source` (the parsed file) is given.
+ */
+export function parseHarnesses(value: unknown, source?: ConfigSource): HarnessProfile[] {
   const result = harnessesFile.safeParse(value ?? {});
-  if (!result.success) throw new HarnessProfileError(`harnesses.yaml: ${describe(result.error.issues)}`);
+  if (!result.success) {
+    throw new HarnessProfileError(describeConfigIssues("harnesses.yaml", result.error.issues, source, 6));
+  }
   const seen = new Set<string>();
   for (const [i, profile] of result.data.harnesses.entries()) {
     if (seen.has(profile.id)) {
-      throw new HarnessProfileError(`harnesses.yaml: harnesses[${i}].id: "${profile.id}" is used twice`);
+      throw new HarnessProfileError(
+        configMessage("harnesses.yaml", ["harnesses", i, "id"], `"${profile.id}" is used twice`, source),
+      );
     }
     seen.add(profile.id);
   }
@@ -168,14 +163,14 @@ export function parseHarnesses(value: unknown): HarnessProfile[] {
 export function loadHarnesses(tenantDir: string): HarnessProfile[] {
   const path = join(tenantDir, "harnesses.yaml");
   if (!existsSync(path)) return [];
-  let raw: unknown;
-  try {
-    raw = parseYaml(readFileSync(path, "utf8"));
-  } catch (error) {
-    const reason = (error as Error).message.split("\n")[0];
-    throw new HarnessProfileError(`harnesses.yaml: is not valid YAML: ${reason}`);
+  const text = readFileSync(path, "utf8");
+  const doc = parseDocument(text);
+  const broken = doc.errors[0];
+  if (broken) {
+    throw new HarnessProfileError(`harnesses.yaml: is not valid YAML: ${broken.message.split("\n")[0]}`);
   }
-  return parseHarnesses(raw ?? {});
+  const value: unknown = doc.toJS() ?? {};
+  return parseHarnesses(value, { text, doc, value });
 }
 
 function executable(path: string): boolean {

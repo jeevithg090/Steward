@@ -1,12 +1,13 @@
 # Steward's brand: the name, the line under it, the accent colour, how it speaks of itself and the
-# starters on an empty Today page. Nothing else in the code names the product, so changing this file
-# and restarting is how Steward becomes yours. See docs/make-it-your-own.md.
+# starters on an empty Today page. The app takes its name and colours from here, so changing this
+# file and restarting is how Steward becomes yours. See docs/make-it-your-own.md.
 
 name: Steward
 tagline: Does the work, asks before it acts, keeps a record you can read.
 
-# Used for buttons, links and focus rings. Keep white text on it readable: a contrast ratio of at
-# least 4.5:1 (#0f6e66 gives about 6.1:1).
+# Used for buttons, links, the current page and focus rings, written as # and six hex digits. White
+# text goes on it, so it needs a contrast ratio of at least 4.5:1 (#0f6e66 gives about 6.1:1); a
+# lighter colour stops start-up. The app works out the dark-mode and more-contrast shades itself.
 accent: "#0f6e66"
 
 # Folded into the agent's system prompt as "Your voice".

@@ -68,6 +68,7 @@ function botPack(model: string): BotPack {
     instructions: "",
     skills: [],
     needs: { tools: [], model },
+    author: { kind: "person", handle: "sam" },
   } as unknown as BotPack;
 }
 
