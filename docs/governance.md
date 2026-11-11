@@ -97,7 +97,7 @@ refuses everything.
 | `target.element.name`    | string          | `"Place order"`                        | Its accessible name, read from the computer's own page snapshot, never from what the model said.                                                                                                                 |
 | `target.mcp.server`      | string          | `"notion"`                             | For tools from connected apps: the server id.                                                                                                                                                                    |
 | `target.mcp.tool`        | string          | `"create_page"`                        | And the tool's own name on that server.                                                                                                                                                                          |
-| `args`                   | map             | `args.subject`, `args.to`              | The call's arguments, with anything that looks like a secret removed first. A key the call does not have reads as empty, and `has(args.cc)` is false for it.                                                     |
+| `args`                   | map             | `args.subject`, `args.to`              | The call's arguments, never shortened, with anything that looks like a secret removed first. A key the call does not have reads as empty, and `has(args.cc)` is false for it.                                    |
 | `intent`                 | string          | `"Reply to Helen about Friday"`        | The model's one-line reason for the call. Written by the model, so never base an `allow` on it.                                                                                                                  |
 | `tainted`                | bool            | `true`                                 | Whether this conversation has already read content Steward does not trust. See [Taint](#taint).                                                                                                                  |
 | `initiator.kind`         | string          | `"routine"`                            | What started the run: `person`, `routine`, `task`, `resume` or `system`. Only the server can start a run as anything but `person`.                                                                               |
@@ -127,6 +127,9 @@ Text tests ignore case, and on a list they ask whether any item passes.
 In a regular expression, `\b`, `\s` and `\d` can be written with one backslash or two; both mean
 the same. In YAML, put the rule in single quotes so the backslashes reach the rule unchanged.
 
+Rules read every argument whole, however long. `matches` refuses text over 100,000 characters
+rather than test only its start, so a long message cannot slip past a deny rule.
+
 ## Rules that ship with Steward
 
 These presets are on from the first start. You can switch any of them off on `/rules`, which is
@@ -136,7 +139,7 @@ recorded in the record as a policy change, but you cannot edit or delete them.
 | ------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Never touch cloud metadata           | deny   | Refuses any call to `169.254.169.254`, `metadata.google.internal` and the other addresses that hand out a cloud machine's credentials.                                                                      |
 | Never run destructive shell commands | deny   | Refuses `rm -r` aimed at `/`, `~` or `$HOME`, `--no-preserve-root`, `mkfs`, `dd if=`, fork bombs, `shutdown` and `reboot`, `sudo` and `doas`, and writing to raw disks. Applies even if you would allow it. |
-| Never pipe a download into a shell   | deny   | Refuses `curl … \| sh` and the like. Download it, read it, then decide.                                                                                                                                     |
+| Never pipe a download into a shell   | deny   | Refuses `curl … \| sh` (also through `tee`, `env` or `/bin/sh`), `bash -c "$(curl …)"`, `eval "$(curl …)"` and `bash <(curl …)`. Download it, read it, then decide.                                         |
 | Never touch key and password files   | deny   | Keeps the file tools away from `.env` (but not `.env.example`), SSH keys, `.pem` files, `credentials.json`, and `.ssh`, `.aws` and `.gnupg` folders.                                                        |
 | Routines ask before they send        | ask    | Anything a routine would send, sign or delete waits for you, even if you said Always allow.                                                                                                                 |
 | Routines ask before running commands | ask    | Commands a routine wants to run wait for you.                                                                                                                                                               |
@@ -181,18 +184,23 @@ the name of the element a click touches (from the computer's own snapshot, never
 and raises the call's kind to match. The same applies to pressing Enter or Space and to typing with
 `submit: true`: there the gateway judges the control the key would activate, which the computer
 reports (the focused button, or the form's default submit button), so tabbing to "Place order" and
-pressing Enter pays just as a click does. When the computer cannot name that control, a committing
-key press counts as at least `send`, so it asks rather than slipping through.
+pressing Enter pays just as a click does.
 
-| Raised to | When the element is named like                                                                                               |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `pay`     | pay, pay now, buy, purchase, checkout, place order, complete order, confirm payment, subscribe, donate, transfer, send money |
-| `sign`    | sign, agree and sign, e-sign (not sign in, sign up or sign out)                                                              |
-| `delete`  | delete, remove, trash, erase, deactivate, unsubscribe, cancel subscription, close account                                    |
-| `send`    | send, submit, post, reply, publish                                                                                           |
+What nobody can name may commit anything, so it counts as at least `send`: it asks by default and
+always after untrusted content. That covers a click on a button with no name (only an icon, or
+only "→"), a key press when the computer can name neither the control nor the focused element,
+and a form whose submit button the computer found but could not name.
 
-The first match wins, so "Submit payment" pays rather than sends. A kind is only ever raised, never
-lowered. The list lives in `packages/gateway/src/escalate.ts`, with tests.
+| Raised to | When the element is named like                                                                                                                                               |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pay`     | pay, buy, purchase, checkout, place order, order now, book, reserve, subscribe, start trial, upgrade, renew, top up, donate, transfer, withdraw, send money, place bid, sell |
+| `sign`    | sign, agree and sign, e-sign, I agree, I accept, agree to the terms, accept terms, accept and continue (not sign in, sign up, sign out or accept cookies)                    |
+| `delete`  | delete, remove, trash, erase, deactivate, unsubscribe, cancel subscription, close account                                                                                    |
+| `send`    | send, submit, post, reply, publish, share (not share screen), invite, forward, comment                                                                                       |
+
+The first match wins, so "Submit payment" pays rather than sends. "Book", "Reserve" and "Sell" pay
+as the first word or before what is booked, so "Address book" and "Reservations" stay clicks. A kind
+is only ever raised, never lowered. The list lives in `packages/gateway/src/escalate.ts`, with tests.
 
 When a person answers a parked browser action, the gateway checks the page again before it acts:
 if the address, the element or the control it would activate changed in the meantime, the action
@@ -325,15 +333,15 @@ prompt tells the agent to report instructions it finds rather than follow them.
 Before a call that would send text out of Steward (an email, a message through a connected app, a
 form value typed into a page), the gateway scans that text.
 
-| Finding        | Detected by                                                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `card_number`  | 13 to 19 digits that pass the Luhn checksum.                                                                                    |
-| `iban`         | An IBAN that passes mod-97 and has the right length for its country.                                                            |
-| `bank_account` | A UK sort code next to an account number.                                                                                       |
-| `national_id`  | A UK National Insurance number, a US Social Security number, or an NHS number next to the word "NHS".                           |
-| `api_key`      | Provider key and token formats (OpenAI, GitHub, AWS, Slack and others), private key blocks and `Authorization` headers.         |
-| `password`     | `password: …` style pairs, and arguments named like passwords.                                                                  |
-| `health`       | A short list of health words, in text that is sent (not in text typed into a page, where a search for a symptom is not a leak). |
+| Finding        | Detected by                                                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `card_number`  | 13 to 19 digits that pass the Luhn checksum, also when an expiry, a CVC or a reference is written right next to them.                                                                                         |
+| `iban`         | An IBAN that passes mod-97 and has the right length for its country.                                                                                                                                          |
+| `bank_account` | A UK sort code next to an account number.                                                                                                                                                                     |
+| `national_id`  | A UK National Insurance number, a US Social Security number, or an NHS number next to the word "NHS".                                                                                                         |
+| `api_key`      | Provider key and token formats (OpenAI, OpenRouter, NVIDIA, xAI, Groq, Hugging Face, GitHub, GitLab, npm, AWS, Slack and others), Steward's own phone tokens, private key blocks and `Authorization` headers. |
+| `password`     | `password: …` style pairs, a card's security code next to its name (`CVC 123`), and arguments named like passwords.                                                                                           |
+| `health`       | A short list of health words, in text that is sent (not in text typed into a page, where a search for a symptom is not a leak).                                                                               |
 
 A finding never carries the value. It carries a masked hint such as `•••• 4242` and a label, so it
 is safe to show on the approval card and to keep in the record.
@@ -470,13 +478,15 @@ not reach it.
 
 When in doubt, Steward refuses. In particular:
 
-- A tool Steward does not know is treated as a `write`. A tool from a connected app is a `write`
-  unless you marked it as a read when you added the app.
+- A tool Steward does not know is treated as a `write` on the `system` surface, so it asks first:
+  it cannot pass for work on Steward's own browser or files. A tool from a connected app is a
+  `write` unless you marked it as a read when you added the app.
 - A deny rule that cannot be evaluated refuses the call. So does an ask or allow rule: a broken
   rule never silently stops applying.
 - A tenant rule that does not compile stops the server at start-up, naming the file and the rule.
 - If the decision cannot be written to the record, the call does not run.
-- If what a call would send cannot be scanned, the call is refused.
+- If what a call would send cannot be scanned, the call is refused. So is a call whose arguments are
+  nested too deeply for a rule to read, and a shell command over 16,000 characters.
 - A resumed call that differs from what was approved, or whose answer was already used, does not
   run.
 - A tool whose results Steward cannot classify counts as tainting.

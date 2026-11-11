@@ -316,8 +316,29 @@ export function denyCheck(
   return deny ? denyDecision(deny, findings) : undefined;
 }
 
+/**
+ * The longest shell command the gateway reads. A longer one is refused as too long to check: the
+ * agent's own shell takes 8,000 characters, and a command padded far past that is not one a
+ * person could read on an approval card either.
+ */
+export const MAX_COMMAND_CHARS = 16_000;
+
 /** Decides a prepared call. Never throws: an error is a refusal. */
 export function decidePrepared(engine: CelEngine, rules: readonly Rule[], call: PreparedCall): Verdict {
+  const command = typeof call.target?.command === "string" ? call.target.command : "";
+  if ((call.tool.kind === "shell" || call.tool.surface === "shell") && command.length > MAX_COMMAND_CHARS) {
+    return {
+      call,
+      canAlways: false,
+      decision: {
+        effect: "deny",
+        rule: builtinRef(BUILTIN.error),
+        reason: `This command is too long to check (over ${MAX_COMMAND_CHARS.toLocaleString("en-GB")} characters), so it was refused to be safe`,
+        findings: [],
+      },
+    };
+  }
+
   let findings: OutboundFinding[] = [];
   try {
     findings = scanOutbound(call);

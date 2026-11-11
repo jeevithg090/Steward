@@ -33,8 +33,11 @@ describe("permissions from external coding agents", () => {
       surface: "file",
       source: "harness:claude-code",
     });
-    // An unknown tool from anywhere else is still at least a write.
-    expect(toolInfo("Read", { kind: "read", surface: "file", source: "connector:x" }).kind).toBe("write");
+    // An unknown tool from anywhere else is still at least a write, and cannot choose its surface.
+    expect(toolInfo("Read", { kind: "read", surface: "file", source: "connector:x" })).toMatchObject({
+      kind: "write",
+      surface: "system",
+    });
   });
 
   it("runs reads, asks before every command whatever a rule says, and asks outside the workspace", () => {

@@ -14,9 +14,9 @@ call ─► prepare (catalogue kind, escalation, target) ─► decide (CEL rule
 
 - **Nothing acts unrecorded.** `tool.decided` is written before any action. A failure to write it
   refuses the call.
-- **Fail closed.** An unknown tool is a write. A rule that cannot be evaluated refuses the call and
-  names itself. Any internal error refuses. A tenant rule that does not compile stops the server at
-  start.
+- **Fail closed.** An unknown tool is a write on the `system` surface, whatever surface its caller
+  named, so it asks. A rule that cannot be evaluated refuses the call and names itself. Any
+  internal error refuses. A tenant rule that does not compile stops the server at start.
 - **Payments and secrets always ask.** Kind `pay`, `request_secret` and typing into a password, PIN,
   card or code field ask every time. A field counts when the computer marks it secret
   (`target.element.sensitive`, from its type or autocomplete, so "Passwort" or an unlabelled password
@@ -119,15 +119,17 @@ own snapshot, never the model's words): `browser_click`, `browser_press` of Ente
 with modifiers, so `Control+Enter` counts), and `browser_type` with `submit: true`. A key press and
 a submitting type are judged by the control the key activates (`target.element.submitter`, the
 focused button or the form's default submit button) and by the focused or typed-into element; the
-stricter wins. When the computer named neither, the key is at least a `send`, so it asks by default
-and always after untrusted content. The first match wins:
+stricter wins. What nobody can name is at least a `send`, so it asks by default and always after
+untrusted content: a click on a button with no name, a committing key when the computer named
+neither the control nor the element, and a submitter the computer found but could not name. A name
+needs a letter or a number to count. The first match wins:
 
-| Kind   | Element names like                                                                                                           |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| pay    | pay, payment, buy, purchase, checkout, place order, complete order, confirm payment, subscribe, donate, transfer, send money |
-| sign   | sign, sign here, agree and sign, e-sign (not sign in, sign up, sign out)                                                     |
-| delete | delete, remove, trash, erase, deactivate, unsubscribe, cancel subscription, close account                                    |
-| send   | send, submit, post, reply, reply all, publish                                                                                |
+| Kind   | Element names like                                                                                                                                                                                                |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| pay    | pay, payment, buy, purchase, checkout, place order, order now, pre-order, book, reserve, confirm booking, subscribe, start trial, upgrade, renew, top up, donate, transfer, withdraw, send money, place bid, sell |
+| sign   | sign, sign here, agree and sign, e-sign, I agree, I accept, agree to the terms, accept terms, accept and continue (not sign in, sign up, sign out, accept cookies)                                                |
+| delete | delete, remove, trash, erase, deactivate, unsubscribe, cancel subscription, close account                                                                                                                         |
+| send   | send, submit, post, reply, reply all, publish, share (not share screen), invite, forward (not fast forward), comment                                                                                              |
 
 The list lives in `ESCALATIONS` (`src/escalate.ts`).
 
@@ -159,7 +161,10 @@ Every variable is always present. A field that does not apply is empty (`""`, `[
 | `findings` (finding kinds)                                                         | `"health" in findings`                                   |
 
 A missing `args` key is absent, not an error: `args.to == "x"` is false and `has(args.to)` is false
-when there is no `to`. Secret-named arguments read as `"[redacted]"`.
+when there is no `to`. Secret-named arguments read as `"[redacted]"`. Nothing else is cut: a rule
+reads every string, item and key whole (`redactForRules`), and arguments nested more than 20 deep
+refuse the call. The approval card's copy is cut at 20,000 characters and says how much is left
+out.
 
 ### Functions
 
@@ -167,7 +172,8 @@ when there is no `to`. Secret-named arguments read as `"[redacted]"`.
 and `lower(text)`. All ignore case; given a list they test each item (`contains` on a list checks
 membership). Plus CEL's `size(x)`, `has(x.y)`, `in`, and the list macros `all`, `exists`,
 `exists_one`, `filter`, `map`. String methods (`x.startsWith(...)`) are not supported; use the
-functions.
+functions. `matches` on text over 100,000 characters makes the rule fail (so the call is refused)
+rather than test only the start.
 
 Strings take the usual escapes (`\"`, `\\`, `\n`, `\t`, `\uXXXX`); any other backslash is kept, so
 a regex reads the same written as `"\bsudo\b"` or `"\\bsudo\\b"`.
@@ -181,11 +187,15 @@ deleted.
 | ------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Never touch cloud metadata           | deny   | `target.host` is 169.254.169.254, metadata.google.internal, and the other cloud metadata addresses                                                                      |
 | Never run destructive shell commands | deny   | shell commands with `rm -r` on `/`, `~` or `$HOME`, `--no-preserve-root`, `mkfs`, `dd if=`, fork bombs, `shutdown`/`reboot`/`halt`, `sudo`/`doas`, writes to `/dev/sd*` |
-| Never pipe a download into a shell   | deny   | `curl … \| sh`, `wget … \| bash`                                                                                                                                        |
+| Never pipe a download into a shell   | deny   | `curl … \| sh`, `wget … \| bash`, also through `tee`, `env` or `/bin/sh`; `bash -c "$(curl …)"`, `eval "$(curl …)"`, `bash <(curl …)`                                   |
 | Never touch key and password files   | deny   | file tools on `.env`, `id_rsa`, `*.pem`, `credentials.json`, `.ssh/`, `.aws/`, `.gnupg/` (not `.env.example`)                                                           |
 | Routines ask before they send        | ask    | `initiator.kind == "routine"` and kind `send`, `sign` or `delete`                                                                                                       |
 | Routines ask before running commands | ask    | `initiator.kind == "routine"` and kind `shell`                                                                                                                          |
 | Reads run freely                     | allow  | `tool.kind == "read"`                                                                                                                                                   |
+
+The shell presets are written to match in time proportional to the command, and a shell command
+over 16,000 characters (`MAX_COMMAND_CHARS`) is refused as too long to check before any rule reads
+it.
 
 Tenant rules (`tenants/<id>/rules.yaml`) are stored with source `tenant`, upserted by name on start
 and removed when the package drops them. They too can be switched off but not edited here.
@@ -200,15 +210,15 @@ What is scanned:
 - The text of `browser_type`, for values but not health words (a health search is not a leak).
 - `target.url`, for keys and passwords only (long numeric ids in URLs would look like cards).
 
-| Finding        | Detected by                                                                                                                           | Hint                                   |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| `card_number`  | 13–19 digits, optional consistent spaces or dashes, Luhn, major network prefix                                                        | `•••• 4242`                            |
-| `iban`         | country code, the country's exact length, mod-97                                                                                      | `GB•• •••• 5432`                       |
-| `national_id`  | UK National Insurance (valid prefixes), US SSN with separators, NHS number next to "NHS" (mod-11)                                     | `••••6C`, `•••-••-••89`                |
-| `api_key`      | `sk-…`, `sk_live_…`, `ghp_…`, `github_pat_…`, `xox?-…`, `AKIA…`, `AIza…`, JWTs, private key blocks, Bearer/Basic headers, `api_key=…` | `ghp_••••`                             |
-| `password`     | `password: x`, `my password is x`, `PIN: 1234` (not "password is required")                                                           | `password: ••••`                       |
-| `bank_account` | a UK sort code and an 8-digit account number within 80 characters, near "sort", "account" or "bank"                                   | `sort code ••-••-56, account ••••5678` |
-| `health`       | a short whole-word list: diagnosis, prescription, medication, cancer, pregnancy, depression, therapist, biopsy, …                     | `mentions "diagnosis"`                 |
+| Finding        | Detected by                                                                                                                                                                                                                                                              | Hint                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- |
+| `card_number`  | 13–19 digits, optional consistent spaces or dashes, Luhn, major network prefix; found inside a longer run of digits too (a card followed by its expiry or CVC)                                                                                                           | `•••• 4242`                            |
+| `iban`         | country code, the country's exact length, mod-97                                                                                                                                                                                                                         | `GB•• •••• 5432`                       |
+| `national_id`  | UK National Insurance (valid prefixes), US SSN with separators, NHS number next to "NHS" (mod-11)                                                                                                                                                                        | `••••6C`, `•••-••-••89`                |
+| `api_key`      | `sk-…` (OpenAI, Anthropic, OpenRouter), `sk_live_…`, `nvapi-…`, `xai-…`, `gsk_…`, `hf_…`, `ghp_…`, `github_pat_…`, `glpat-…`, `npm_…`, `xox?-…`, Slack webhooks, `AKIA…`, `AIza…`, `stw_dev_…` phone tokens, JWTs, private key blocks, Bearer/Basic headers, `api_key=…` | `ghp_••••`                             |
+| `password`     | `password: x`, `my password is x`, `PIN: 1234`, `CVC 123` (not "password is required")                                                                                                                                                                                   | `password: ••••`                       |
+| `bank_account` | a UK sort code and an 8-digit account number within 80 characters, near "sort", "account" or "bank"                                                                                                                                                                      | `sort code ••-••-56, account ••••5678` |
+| `health`       | a short whole-word list: diagnosis, prescription, medication, cancer, pregnancy, depression, therapist, biopsy, …                                                                                                                                                        | `mentions "diagnosis"`                 |
 
 Findings never carry the value. Each detector has false positives, which is why a finding asks and
 never refuses. Text over 2,000,000 characters is not scanned; the call is refused instead.

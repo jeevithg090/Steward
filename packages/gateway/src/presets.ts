@@ -26,17 +26,72 @@ export const METADATA_HOSTS = [
   "[fd00:ec2::254]",
 ] as const;
 
+/**
+ * Each pattern below is written so that matching takes time in proportion to the command, however
+ * it is padded. A pattern that backtracks would let a long command freeze the server while it is
+ * checked, so:
+ * - nothing scans to the end of the command from every word: a scan that has no bound starts only
+ *   where a simple command starts (after `;`, `&`, `|`, a newline or a backtick), and stops where it
+ *   ends, so each part of the command is read once;
+ * - a scan that starts at a word reads at most a few words (`{0,8}`);
+ * - no two parts of a pattern can match the same text two ways (`[a-qs-z]*r`, not `[a-z]*r`).
+ * The tests time each preset on long, hostile commands.
+ */
+
+/** Where a simple command starts: the beginning, or just after `;`, `&`, `|`, a newline or a backtick. */
+const START = String.raw`(?:^|[;&|\n\r\x60])`;
+/** Any text up to the end of the simple command, as little as needed. */
+const REST = String.raw`[^;&|\n\r\x60]*?`;
+/** A command-line flag and the space after it, up to eight of them. */
+const FLAGS = String.raw`(?:-[^\s;&|]+\s+){0,8}`;
+/** What `env` or `sudo` take before the program they run: flags and settings such as FOO=1. */
+const RUNNER_ARGS = String.raw`(?:-[^\s;&|]+\s+|\w+=[^\s;&|]*\s+){0,8}`;
+/** A path in front of a program's name, such as /usr/bin/. */
+const DIRS = String.raw`(?:[^\s;&|/]*/)*`;
+/** A download command, by name or by path. */
+const DOWNLOAD = String.raw`${DIRS}(?:curl|wget|fetch)\b`;
+/** A shell, by name or by path: sh, bash, zsh, dash, ksh, fish, /bin/sh. */
+const SHELL = String.raw`${DIRS}(?:ba|z|da|k|fi)?sh\b`;
+
+/**
+ * Text up to the first `word` in the simple command, read once: `(?=(…))\k<…>` keeps what the
+ * look-ahead found, so a failed match never tries a later `word` all over again.
+ */
+function firstInCommand(group: string, word: string): string {
+  return String.raw`${START}(?=(?<${group}>${REST}\b${word}(?=\s)))\k<${group}>`;
+}
+
 const DESTRUCTIVE_SHELL = [
-  // rm with a recursive flag aimed at /, ~ or $HOME (relative paths inside the workspace are fine)
-  String.raw`\brm\s+(-[a-z-]+\s+)*(-[a-z]*r[a-z]*|--recursive)\s+(-[a-z-]+\s+)*['"]?(/|~|\$HOME)`,
-  String.raw`\brm\s+.*--no-preserve-root`,
-  String.raw`\bmkfs(\.[a-z0-9]+)?\b`,
-  String.raw`\bdd\s+(\S+\s+)*if=`,
+  // rm with a recursive flag aimed at /, ~ or $HOME (relative paths inside the workspace are fine).
+  // The flag and the path may come in any order after rm, within the same simple command. Where
+  // output goes (`> /dev/null`, `2> /tmp/log`) is not something rm deletes.
+  String.raw`${firstInCommand("rm", "rm")}(?=${REST}\s-(?:[a-qs-z]*r[a-z]*|-recursive)(?![^\s;&|]))(?=${REST}(?<![\s<>])\s+['"]?(?:/|~|\$\{?HOME\b))`,
+  String.raw`--no-preserve-root\b`,
+  String.raw`\bmkfs(?:\.[a-z0-9]+)?\b`,
+  // dd reading from anything (if=), within the same simple command.
+  String.raw`${firstInCommand("dd", "dd")}(?=${REST}\sif=)`,
   String.raw`:\(\)\s*\{`,
-  String.raw`\b(shutdown|reboot|halt|poweroff)\b`,
-  String.raw`\b(sudo|doas)\b`,
-  String.raw`>\s*/dev/(sd|nvme|disk|hd)`,
+  String.raw`\b(?:shutdown|reboot|halt|poweroff)\b`,
+  String.raw`\b(?:sudo|doas)\b`,
+  String.raw`>\s*/dev/(?:sd|nvme|disk|hd)`,
 ].join("|");
+
+const PIPE_TO_SHELL = [
+  // A download anywhere in the command, and a pipe into a shell anywhere in it (through tee, env,
+  // /usr/bin/env or anything else). Anchored at the start and written as two look-aheads, so it
+  // reads the command once.
+  String.raw`^(?=[\s\S]*\b(?:curl|wget|fetch)\b)(?=[\s\S]*\|\s*(?:${DIRS}(?:sudo|doas|env)\s+${RUNNER_ARGS}|exec\s+)?${SHELL})`,
+  // A shell or eval running a download's output: bash -c "$(curl …)", bash -c "`curl …`",
+  // eval "$(curl …)", bash <(curl …).
+  String.raw`\b(?:(?:ba|z|da|k|fi)?sh|eval|source)\s+${FLAGS}(?:["']?(?:\$\(|\x60)|<\()\s*${DOWNLOAD}`,
+  // Sourcing a download: . <(curl …)
+  String.raw`(?:^|[\s;&|(])\.\s+<\(\s*${DOWNLOAD}`,
+].join("|");
+
+/** CEL text for a regex: backslashes stay single (see `cel.ts`), double quotes are escaped. */
+function celRegex(pattern: string): string {
+  return `"${pattern.replace(/"/g, '\\"')}"`;
+}
 
 export const PRESET_RULES: readonly PresetRule[] = [
   {
@@ -51,7 +106,7 @@ export const PRESET_RULES: readonly PresetRule[] = [
     id: "preset_destructive_shell",
     name: "Never run destructive shell commands",
     effect: "deny",
-    when: `tool.kind == "shell" && matches(target.command, "${DESTRUCTIVE_SHELL.replace(/"/g, '\\"')}")`,
+    when: `tool.kind == "shell" && matches(target.command, ${celRegex(DESTRUCTIVE_SHELL)})`,
     description:
       "Wiping the disk, formatting drives, sudo, shutdown and fork bombs are refused outright, even if you would allow them.",
   },
@@ -59,7 +114,7 @@ export const PRESET_RULES: readonly PresetRule[] = [
     id: "preset_pipe_to_shell",
     name: "Never pipe a download into a shell",
     effect: "deny",
-    when: String.raw`tool.kind == "shell" && matches(target.command, "\b(curl|wget|fetch)\b[^|]*\|\s*(sudo\s+)?(ba|z|da|k)?sh\b")`,
+    when: `tool.kind == "shell" && matches(target.command, ${celRegex(PIPE_TO_SHELL)})`,
     description:
       "Running a script straight from the internet skips every check. Download it, read it, then decide.",
   },
