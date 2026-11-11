@@ -95,6 +95,7 @@ describe("Workspace", () => {
   });
 
   it("reports missing files, folders and binary files plainly", async () => {
+    await mkdir(join(root, "reports"), { recursive: true });
     expect((await refusal(() => ws.read("nope.md"))).code).toBe("not_found");
     expect((await refusal(() => ws.read("reports"))).code).toBe("bad_input");
     await writeFile(join(root, "image.bin"), Buffer.from([0x89, 0x50, 0x00, 0x01]));
