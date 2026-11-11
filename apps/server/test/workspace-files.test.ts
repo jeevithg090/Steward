@@ -1,4 +1,12 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { WorkspaceFile, WorkspaceFileText } from "@steward/shared";
@@ -125,6 +133,35 @@ describe.runIf(missing.length === 0)("opening and adding workspace files over HT
     expect((await add("photo.png", "x")).status).toBe(415);
     expect((await add("nul.txt", "a\0b")).status).toBe(415);
     expect((await add("big.txt", "é".repeat(1024 * 1024 + 1))).status).toBe(413);
+  });
+
+  it("never writes an upload through a link out of the workspace", async () => {
+    const add = (name: string) =>
+      t.api<WorkspaceFile & { error?: string }>("/api/computer/steward/uploads", {
+        method: "POST",
+        json: { name, text: "from the person" },
+      });
+    const uploads = join(workspace, "uploads");
+    rmSync(uploads, { recursive: true, force: true });
+    try {
+      // The folder itself leads out (the agent's shell could have made it so).
+      symlinkSync(outside, uploads);
+      expect((await add("plan.md")).status).toBe(400);
+      expect(existsSync(join(outside, "plan.md"))).toBe(false);
+      rmSync(uploads);
+      // A name already taken by a link out: a new name, never through the link.
+      mkdirSync(uploads);
+      symlinkSync(join(outside, "secret.txt"), join(uploads, "secret.txt"));
+      const linked = await add("secret.txt");
+      expect(linked.body.path).toBe("uploads/secret-2.txt");
+      expect(readFileSync(join(outside, "secret.txt"), "utf8")).toBe("not yours");
+      // A link to nothing is refused rather than followed.
+      symlinkSync(join(outside, "nothing.txt"), join(uploads, "dangling.txt"));
+      expect((await add("dangling.txt")).status).toBe(400);
+      expect(existsSync(join(outside, "nothing.txt"))).toBe(false);
+    } finally {
+      rmSync(uploads, { recursive: true, force: true });
+    }
   });
 
   it("refuses an upload that is not JSON, and one from another site", async () => {
