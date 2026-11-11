@@ -1,6 +1,7 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { claimRouteFocus, markRouteChange } from "@/lib/focus.ts";
 import { Button } from "./Button.tsx";
 import { Dialog } from "./Dialog.tsx";
 import { ChoiceGroup, Field, Input, Switch } from "./Field.tsx";
@@ -143,7 +144,7 @@ describe("Tabs", () => {
 });
 
 describe("Dialog", () => {
-  it("is named by its title, closes on Escape, and gives focus back", () => {
+  it("is named by its title, closes on Escape, and gives focus back", async () => {
     const onClose = vi.fn();
     render(<DialogHarness onClose={onClose} />);
     const opener = screen.getByRole("button", { name: "Open" });
@@ -152,10 +153,40 @@ describe("Dialog", () => {
     const dialog = screen.getByRole("dialog", { name: "Delete this rule?" });
     expect(dialog.getAttribute("aria-describedby")).toBeTruthy();
     expect(document.activeElement?.textContent).toBe("Inside");
-    fireEvent.keyDown(dialog, { key: "Escape" });
+    await act(async () => {
+      fireEvent.keyDown(dialog, { key: "Escape" });
+    });
     expect(onClose).toHaveBeenCalled();
     expect(screen.queryByText("Inside")).toBeNull();
     expect(document.activeElement).toBe(opener);
+  });
+
+  it("leaves focus where it went when something else took it", async () => {
+    render(
+      <>
+        <DialogHarness onClose={() => screen.getByRole("textbox", { name: "Elsewhere" }).focus()} />
+        <input aria-label="Elsewhere" />
+      </>,
+    );
+    const opener = screen.getByRole("button", { name: "Open" });
+    opener.focus();
+    fireEvent.click(opener);
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+    });
+    expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Elsewhere" }));
+  });
+
+  it("leaves focus for the new page when it closes because of a route change", async () => {
+    render(<DialogHarness onClose={markRouteChange} />);
+    const opener = screen.getByRole("button", { name: "Open" });
+    opener.focus();
+    fireEvent.click(opener);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    });
+    expect(document.activeElement).not.toBe(opener);
+    claimRouteFocus();
   });
 
   it("keeps Tab inside", () => {

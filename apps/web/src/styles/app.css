@@ -14,7 +14,8 @@
  * choice through `data-theme` on <html>. `src/app/accessibility.tsx` sets these attributes:
  *
  *   data-theme="light|dark"     colour scheme (absent: follow the system)
- *   data-contrast="more"        stronger ink, borders and focus rings, no translucent glass
+ *   data-contrast="more"        stronger ink, borders and focus rings, no translucent glass (also
+ *                               set when the system asks for more contrast)
  *   data-motion="reduce"        no animation (also honoured from prefers-reduced-motion)
  *   data-text="100|115|130|150" root font size, in percent of the browser's own
  *   data-font="readable"        a high-legibility face with wider spacing
@@ -330,6 +331,40 @@
   transition-duration: 0.01ms !important;
   /* biome-ignore lint/complexity/noImportantStyles: less motion must beat every utility. */
   scroll-behavior: auto !important;
+}
+
+/*
+ * Forced colours (Windows High Contrast, and the like elsewhere). The system repaints every colour
+ * from its own palette and drops shadows and background tints, which Steward uses for many edges
+ * and states. Unlayered, so these win over any utility. System colours named here are kept as they
+ * are, so a state can still stand out: Highlight marks what is selected and where focus is.
+ */
+@media (forced-colors: active) {
+  /* Edges drawn with a shadow come back as a line. */
+  .shadow-card,
+  .shadow-raised,
+  .shadow-float {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+
+  /* The selected tab and the current place in the navigation. */
+  nav [aria-current="page"],
+  [role="tab"][aria-selected="true"] {
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  nav [aria-current="page"] *,
+  [role="tab"][aria-selected="true"] * {
+    background-color: transparent;
+    color: HighlightText;
+  }
+
+  /* Focus, last so it wins over the lines above, and everywhere a utility switched the outline off. */
+  :focus-visible:not([tabindex="-1"]) {
+    outline: var(--st-focus-width) solid Highlight;
+    outline-offset: var(--st-focus-offset);
+  }
 }
 
 /*

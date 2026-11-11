@@ -81,11 +81,13 @@ function useFieldProps<T extends { id?: string; "aria-describedby"?: string; req
   };
 }
 
+// Forced colours (Windows High Contrast) drop shadows, so there the edge is a real border.
 const control = cn(
   "w-full min-h-target rounded-field bg-card px-3 py-2 text-body text-ink",
   "shadow-[inset_0_0_0_1px_var(--st-line)] placeholder:text-ink-3",
   "disabled:cursor-not-allowed disabled:opacity-60",
   "aria-invalid:shadow-[inset_0_0_0_2px_var(--st-problem)]",
+  "forced-colors:border forced-colors:aria-invalid:border-2",
 );
 
 export function Input({ className, ...props }: ComponentProps<"input">) {
@@ -164,18 +166,25 @@ export function Switch({
           "disabled:cursor-not-allowed disabled:opacity-55",
         )}
       >
+        {/* In forced colours the track and knob are drawn in the system's own colours, which it
+            keeps: an outlined track, and a filled one with the knob moved across when on. */}
         <span
           aria-hidden="true"
           className={cn(
             "absolute inset-x-1 inset-y-2.5 rounded-full transition-colors duration-(--st-dur-swap)",
-            checked ? "bg-accent" : "bg-tile shadow-[inset_0_0_0_1px_var(--st-line)]",
+            "forced-colors:border",
+            checked
+              ? "bg-accent forced-colors:bg-[Highlight]"
+              : "bg-tile shadow-[inset_0_0_0_1px_var(--st-line)]",
           )}
         />
         <span
           aria-hidden="true"
           className={cn(
             "relative ml-2 size-5 rounded-full shadow-float transition-transform duration-(--st-dur-swap) ease-out-soft",
-            checked ? "translate-x-6 bg-on-accent" : "bg-card",
+            checked
+              ? "translate-x-6 bg-on-accent forced-colors:bg-[HighlightText]"
+              : "bg-card forced-colors:bg-[ButtonText]",
           )}
         />
       </button>
@@ -229,8 +238,9 @@ export function ChoiceGroup<T extends string>({
               key={choice.value}
               className={cn(
                 "relative flex min-h-target cursor-pointer items-center gap-2 rounded-field px-3 py-2 text-sub",
+                "forced-colors:border-2",
                 checked
-                  ? "bg-accent-soft font-medium text-ink shadow-[inset_0_0_0_2px_var(--st-accent)]"
+                  ? "bg-accent-soft font-medium text-ink shadow-[inset_0_0_0_2px_var(--st-accent)] forced-colors:border-[Highlight]"
                   : "bg-card text-ink shadow-[inset_0_0_0_1px_var(--st-line)] hover:bg-tile",
               )}
             >

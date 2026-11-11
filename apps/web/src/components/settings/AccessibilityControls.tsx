@@ -11,7 +11,7 @@ import { ChoiceGroup, Switch } from "@/components/ui/Field.tsx";
 
 /**
  * Every display and reading setting in one place. Changes apply at once and are remembered in this
- * browser; plain language is saved for the agent too.
+ * browser; plain language is saved with Steward itself, since it changes how the agent answers.
  */
 export function AccessibilityControls({
   compact = false,
@@ -44,7 +44,7 @@ export function AccessibilityControls({
         value={a11y.contrast}
         onValueChange={a11y.setContrast}
         choices={[
-          { value: "normal", label: "Standard" },
+          { value: "normal", label: "Match this device" },
           { value: "more", label: "More contrast", description: "Darker words, stronger edges" },
         ]}
       />
@@ -96,7 +96,13 @@ export function AccessibilityControls({
             checked={a11y.plainLanguage}
             onCheckedChange={a11y.setPlainLanguage}
             label="Plain language"
-            description="Steward answers in short sentences and everyday words."
+            description="Steward answers in short sentences and everyday words, on every device."
+          />
+          <Switch
+            checked={a11y.shortcuts}
+            onCheckedChange={a11y.setShortcuts}
+            label="Keyboard shortcuts"
+            description="Single keys, like g then t, move between pages. Turn them off if you use voice control."
           />
         </>
       )}
