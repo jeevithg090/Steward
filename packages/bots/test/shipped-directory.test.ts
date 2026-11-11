@@ -1,10 +1,11 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { CelEngine, CONTEXT_SCHEMA, neutralContext } from "@steward/gateway";
 import { type BotPack, type DirectoryIndex, TOOLS } from "@steward/shared";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { hashPack } from "../src/canonical.ts";
-import { DirectoryIndexSchema } from "../src/directory.ts";
+import { buildIndex, DirectoryIndexSchema } from "../src/directory.ts";
 import { parseBotFolder } from "../src/pack.ts";
 import { validatePack } from "../src/validate.ts";
 
@@ -81,4 +82,37 @@ describe("the shipped directory", () => {
     }
     expect(wrong).toEqual([]);
   });
+
+  it("is exactly what a build writes: rebuilding a copy changes no file", async () => {
+    const copy = mkdtempSync(join(tmpdir(), "steward-shipped-"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      for (const entry of ["bots", "packs", "index.json", "categories.yaml", "counts.json"]) {
+        if (existsSync(join(DIRECTORY, entry)))
+          cpSync(join(DIRECTORY, entry), join(copy, entry), { recursive: true });
+      }
+      // A far-off clock: a bot whose content changed since the last build would take its date.
+      await buildIndex(copy, {
+        name: index.name,
+        ...(index.site ? { site: index.site } : {}),
+        now: () => new Date("2100-01-01T00:00:00Z"),
+      });
+      const read = (root: string, path: string) => readFileSync(join(root, path), "utf8");
+      const shipped = new Map(index.bots.map((b) => [b.id, JSON.stringify(b)]));
+      const rebuilt = DirectoryIndexSchema.parse(JSON.parse(read(copy, "index.json"))) as DirectoryIndex;
+      const differ = rebuilt.bots.filter((b) => shipped.get(b.id) !== JSON.stringify(b)).map((b) => b.id);
+      expect(differ, "listings that differ from a fresh build").toEqual([]);
+      expect(readdirSync(join(copy, "packs")).sort()).toEqual(packFiles.map((id) => `${id}.json`).sort());
+      const packs = packFiles.filter(
+        (id) => read(copy, `packs/${id}.json`) !== read(DIRECTORY, `packs/${id}.json`),
+      );
+      expect(packs, "packs that differ from a fresh build").toEqual([]);
+      expect(read(copy, "index.json") === read(DIRECTORY, "index.json"), "index.json is byte for byte").toBe(
+        true,
+      );
+    } finally {
+      warn.mockRestore();
+      rmSync(copy, { recursive: true, force: true });
+    }
+  }, 120_000);
 });
