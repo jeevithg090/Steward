@@ -165,8 +165,10 @@ export class Workers {
   private async takeTurn(queued: Routine): Promise<void> {
     // It may have waited a while: one switched off or removed since does not run, and one edited
     // runs as it is now.
-    const routine = this.deps.routines.get(queued.id);
-    if (!routine?.enabled) return;
+    const current = this.deps.routines.get(queued.id);
+    if (!current?.enabled) return;
+    // The slot it was claimed for travels with it, so a late start still says when it was due.
+    const routine: Routine = queued.dueAt ? { ...current, dueAt: queued.dueAt } : current;
     const run = await this.fire(routine);
     if (!run) return;
     let timer: NodeJS.Timeout | undefined;
