@@ -115,8 +115,28 @@ describe("GitHub sign-in", () => {
       "%2F%5Cevil.example",
       "%5C%5Cevil.example",
       "https%3A%2F%2Fevil.example",
+      // Dot segments collapse when the path is resolved, which would leave "//evil.example".
+      "%2F.%2F%2Fevil.example%2Fx",
+      "%2Fx%2F..%2F%2Fevil.example",
+      "%2F%252e%2F%2Fevil.example",
+      "%2F%252E%252E%2F%2Fevil.example",
     ]) {
       expect(await landsOn(next), next).toBe("/submit");
+    }
+  });
+
+  it("checks the address in the state cookie again, dot segments and all", async () => {
+    f.github.users.set("code-ben", { id: 102, login: "ben" });
+    const start = await f.request("/auth/github?next=%2Fsubmit");
+    const state = new URL(start.headers.get("location")!).searchParams.get("state")!;
+    const name = (start.headers.get("set-cookie") ?? "").split("=")[0]!;
+    // The callback trusts nothing it reads back: the cookie may not be the one sign-in set.
+    for (const next of ["/.//evil.example/x", "/x/..//evil.example", "/%2e%2e//evil.example"]) {
+      const back = await f.request(`/auth/github/callback?code=code-ben&state=${state}`, {
+        headers: { cookie: `${name}=${state}.${encodeURIComponent(next)}` },
+      });
+      expect(back.status, next).toBe(303);
+      expect(back.headers.get("location"), next).toBe("/submit");
     }
   });
 

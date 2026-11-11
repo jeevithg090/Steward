@@ -569,17 +569,20 @@ export async function createDirectoryApp(
    * Where to go after sign-in: a path on this site, or `/submit`. Control characters and
    * backslashes are refused outright, because browsers drop tabs and newlines and read `\` as `/`
    * when they follow a Location header, so "/\t/evil.example" would leave the site. What is left is
-   * resolved against this site and kept only when it stays here.
+   * resolved against this site and kept only when it stays here. Resolving collapses dot segments,
+   * so "/.//evil.example" comes out as "//evil.example": the result is checked again.
    */
   const safeNext = (next: string | undefined): string => {
-    if (!next?.startsWith("/") || next.startsWith("//") || next.length > 300) return "/submit";
+    const onSite = (path: string) => path.startsWith("/") && !path.startsWith("//") && path.length <= 300;
+    if (!next || !onSite(next)) return "/submit";
     for (const ch of next) {
       const n = ch.charCodeAt(0);
       if (n < 0x20 || n === 0x7f || ch === "\\") return "/submit";
     }
     try {
       const url = new URL(next, siteOrigin);
-      return url.origin === siteOrigin ? `${url.pathname}${url.search}${url.hash}` : "/submit";
+      const path = `${url.pathname}${url.search}${url.hash}`;
+      return url.origin === siteOrigin && onSite(path) ? path : "/submit";
     } catch {
       return "/submit";
     }
