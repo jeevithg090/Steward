@@ -483,18 +483,22 @@ function Conversation({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const empty = messages.every((message) => message.role !== "user" && message.role !== "assistant");
+  // A new conversation has nothing to follow yet: it opens at the top, so on a phone the heading and
+  // "Who should take this?" are in view rather than scrolled away under the composer.
+  const followEnd = pinned && !(empty && pending.length === 0);
   const lastMessage = messages[messages.length - 1];
   const tail = `${messages.length}:${lastMessage ? textOf(lastMessage.content).length : 0}:${pending.length}:${running}`;
   // biome-ignore lint/correctness/useExhaustiveDependencies: `tail` stands for "the end changed".
   useLayoutEffect(() => {
-    if (pinned) window.scrollTo?.({ top: document.documentElement.scrollHeight });
-  }, [tail, pinned]);
+    if (followEnd) window.scrollTo?.({ top: document.documentElement.scrollHeight });
+  }, [tail, followEnd]);
 
   // Much of the conversation grows in place without a new message: a draft or a table streaming
   // into its card, a handed-on task's steps, an approval, a notice. While the person is at the end,
   // any growth of the column keeps the end in view, at most once a frame.
-  const pinnedRef = useRef(pinned);
-  pinnedRef.current = pinned;
+  const pinnedRef = useRef(followEnd);
+  pinnedRef.current = followEnd;
   useEffect(() => {
     const column = columnRef.current;
     if (!column || typeof ResizeObserver === "undefined") return;
@@ -537,7 +541,6 @@ function Conversation({
     target?.focus({ preventScroll: true });
   };
 
-  const empty = messages.every((message) => message.role !== "user" && message.role !== "assistant");
   const helpWanted = Boolean(computer?.status?.help) && !(wide && panelOpen);
   const footnote = info.data?.model.scripted
     ? "Replies come from a scripted model for testing, not a real one."
@@ -693,7 +696,7 @@ function Conversation({
                 wide ? "bottom-0 pb-4" : "bottom-[calc(3.5rem+env(safe-area-inset-bottom))] pb-3",
               )}
             >
-              {!pinned ? (
+              {!pinned && !empty ? (
                 <div className="pointer-events-none absolute inset-x-0 bottom-full flex justify-center pb-2">
                   <Button
                     variant="secondary"

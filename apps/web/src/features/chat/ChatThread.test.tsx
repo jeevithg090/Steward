@@ -630,6 +630,15 @@ describe("ChatThread", () => {
       restoreScroll();
       Reflect.deleteProperty(document.documentElement, "scrollHeight");
     });
+    /** A conversation with something in it to follow. */
+    const drawConversation = async () => {
+      kit.state.messages = [
+        { id: "u1", role: "user", content: "What needs me today?" },
+        { id: "a1", role: "assistant", content: "Two emails need you." },
+      ];
+      draw();
+      await screen.findByText("Two emails need you.");
+    };
     /** The person scrolls up, away from the end of a long conversation. */
     const scrollUp = () => {
       Object.defineProperty(document.documentElement, "scrollHeight", { configurable: true, value: 5000 });
@@ -639,8 +648,7 @@ describe("ChatThread", () => {
     };
 
     it("keeps the end in view when something grows in place, not only on a new message", async () => {
-      draw();
-      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      await drawConversation();
       scrollTo.mockClear();
       grow();
       expect(scrollTo).toHaveBeenCalledTimes(1);
@@ -648,9 +656,17 @@ describe("ChatThread", () => {
       expect(scrollTo).toHaveBeenCalledTimes(2);
     });
 
-    it("leaves the view where the person scrolled it", async () => {
+    it("opens a new conversation at the top, with nothing to jump to", async () => {
       draw();
       await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      grow();
+      expect(scrollTo).not.toHaveBeenCalled();
+      scrollUp();
+      expect(screen.queryByRole("button", { name: "Jump to the latest" })).toBeNull();
+    });
+
+    it("leaves the view where the person scrolled it", async () => {
+      await drawConversation();
       scrollUp();
       scrollTo.mockClear();
       grow();
@@ -659,8 +675,7 @@ describe("ChatThread", () => {
 
     it("jumps to the latest without gliding when motion is reduced", async () => {
       localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify({ motion: "reduce" }));
-      draw();
-      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      await drawConversation();
       scrollUp();
       scrollTo.mockClear();
       fireEvent.click(screen.getByRole("button", { name: "Jump to the latest" }));
@@ -668,8 +683,7 @@ describe("ChatThread", () => {
     });
 
     it("glides there otherwise", async () => {
-      draw();
-      await screen.findByRole("heading", { name: /What can Steward do for you/ });
+      await drawConversation();
       scrollUp();
       scrollTo.mockClear();
       fireEvent.click(screen.getByRole("button", { name: "Jump to the latest" }));
