@@ -882,7 +882,13 @@ function BuiltinTools({
           What Steward can do on its own computer and with your connections.
         </p>
       </div>
-      <div className="overflow-x-auto rounded-card bg-card shadow-card">
+      {/* Focusable so keyboard users can scroll the table sideways on a narrow screen. */}
+      <section
+        aria-label="Built-in tools table"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be reachable by keyboard.
+        tabIndex={0}
+        className="overflow-x-auto rounded-card bg-card shadow-card"
+      >
         <table className="w-full min-w-[36rem] border-collapse text-left text-sub">
           <caption className="sr-only">Built-in tools, what each does, and where it acts</caption>
           <thead>
@@ -917,7 +923,7 @@ function BuiltinTools({
             ))}
           </tbody>
         </table>
-      </div>
+      </section>
     </section>
   );
 }
