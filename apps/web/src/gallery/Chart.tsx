@@ -54,7 +54,12 @@ export function Chart(props: { args?: Record<string, unknown> }) {
 /** The chart as a table: one row per label, one column per series. Always complete. */
 export function ChartTable({ chart }: { chart: ChartData }) {
   return (
-    <div className="mt-2 overflow-x-auto">
+    <section
+      aria-label={`${chart.title}, as a table`}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be reachable by keyboard.
+      tabIndex={0}
+      className="mt-2 overflow-x-auto rounded-sm"
+    >
       <table className="w-full border-collapse text-left text-sub">
         <caption className="sr-only">{chart.title}, as a table</caption>
         <thead className="text-caption text-ink-2">
@@ -89,7 +94,7 @@ export function ChartTable({ chart }: { chart: ChartData }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 }
 

@@ -17,7 +17,10 @@ export function DemoRibbon() {
   if (!demoMail && !scripted) return null;
   // A model chosen in Settings wins over .env, so the way to a real model starts there.
   const setUp = (
-    <Link to="/settings" className="underline underline-offset-2 hover:text-accent">
+    <Link
+      to="/settings"
+      className="-my-1 inline-block rounded-sm py-1 underline underline-offset-2 hover:text-accent"
+    >
       set up a real model
     </Link>
   );

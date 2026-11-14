@@ -34,7 +34,8 @@ export function PageHeader({ title, documentTitle, description, actions, classNa
 
   return (
     <header className={cn("flex flex-wrap items-end justify-between gap-x-6 gap-y-3", className)}>
-      <div className="min-w-0 flex-1">
+      {/* At least 20rem wide, so on a phone the actions wrap below instead of squeezing the text. */}
+      <div className="min-w-[min(100%,20rem)] flex-1">
         <h1 ref={ref} id="page-title" tabIndex={-1} className="font-semibold text-display text-ink">
           {title}
         </h1>
