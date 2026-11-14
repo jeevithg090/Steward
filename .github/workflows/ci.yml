@@ -60,14 +60,28 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
 
+      # Both steps reach the runner's apt mirrors, which sometimes fail to resolve for a few minutes,
+      # so each tries three times before it gives up.
       - name: Install Chromium for Playwright
         if: steps.browsers.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          for attempt in 1 2 3; do
+            pnpm exec playwright install --with-deps chromium && exit 0
+            echo "::warning::Installing Chromium failed (attempt $attempt of 3)"
+            sleep $((attempt * 20))
+          done
+          exit 1
 
       # The browser came from the cache, but the system libraries it needs did not.
       - name: Install Chromium's system libraries
         if: steps.browsers.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+        run: |
+          for attempt in 1 2 3; do
+            pnpm exec playwright install-deps chromium && exit 0
+            echo "::warning::Installing Chromium's libraries failed (attempt $attempt of 3)"
+            sleep $((attempt * 20))
+          done
+          exit 1
 
       # Every package, and the end-to-end specs.
       - name: Typecheck
