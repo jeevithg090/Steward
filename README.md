@@ -12,9 +12,11 @@ It does the work, asks before it acts, and keeps a record you can read.
 [![1,251 bots](https://img.shields.io/badge/bots-1%2C251-0f6e66.svg)](#bots)
 ![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)
 
-[Quick start](#quick-start) · [Try it](#try-it-in-five-minutes) · [How it works](#how-it-works) ·
-[Governance](#governance) · [Bots](#bots) · [Other agents](#other-agents-and-models) ·
-[Phone](#your-phone) · [Make it your own](#make-it-your-own) · [Docs](docs/README.md)
+[Screenshots](#screenshots) · [Quick start](#quick-start) · [Try it](#try-it-in-five-minutes) ·
+[How it works](#how-it-works) · [Governance](#governance) · [Bots](#bots) ·
+[Other agents](#other-agents-and-models) · [Phone](#your-phone) · [Make it your own](#make-it-your-own)<br>
+[Configuration](#configuration) · [API](#api-reference) · [Testing](#testing) ·
+[Deployment](#deployment) · [Troubleshooting](#troubleshooting) · [Docs](docs/README.md)
 
 </div>
 
@@ -33,6 +35,26 @@ to sign up for, and no key needed to try it.
 > [!NOTE]
 > **Alpha.** Steward is young. Expect rough edges, and expect things to move. Issues and pull
 > requests are welcome.
+
+## Who it is for
+
+Steward is for one person who wants an assistant that does real work (reading mail, researching,
+filling in forms, drafting replies) without handing it the keys. Every agent product has to answer
+"what stops it doing something I didn't want?". Steward's answer is not a prompt: it is a gateway
+that every tool call passes through, rules you can read and test, a hard stop before anything
+leaves your machine, and a record you can check yourself.
+
+It suits:
+
+- **People who want help with their inbox and errands** but will not let a model send, pay or
+  delete on its own.
+- **Developers** who want a local, hackable agent: one SQLite file, YAML configuration, any
+  OpenAI-compatible model, and Claude Code, Codex or Gemini CLI as agents under the same rules.
+- **Anyone who relies on a keyboard, a screen reader, large text or voice**, because those paths
+  were built in from the start, not added later.
+
+It is not (yet) a multi-user or hosted product: it has no sign-in and listens only on your own
+machine. See [Known limitations](#known-limitations).
 
 ## Why Steward
 
@@ -58,11 +80,61 @@ More of what it does:
 - **Runs any model.** OpenRouter, OpenAI, Anthropic, Gemini, NVIDIA, xAI, Ollama on your own
   machine, or any OpenAI-compatible server, chosen per conversation.
 
+## Screenshots
+
+These come from a local run of this repository with the scripted demo model and the made-up demo
+inbox (`STEWARD_MODEL_PROVIDER=scripted`), so every name, email and event in them is invented.
+
+| Today, with the morning brief                                                                                                                                                                                 | An email that stops and asks first                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/today-desktop.png" alt="Today on a desktop: a box to ask Steward something, five starter prompts, and the brief listing the demo emails that need you, each with a Start button."> | <img src="docs/screenshots/chat-approval-desktop.png" alt="A conversation where Steward drafted an email to sam@example.com and an approval card asks: Refuse, Allow once, Allow in this conversation or Always allow. The computer panel sits on the right."> |
+
+| The record, checked (dark theme)                                                                                                                                                                  | Rules and the tester                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/record-dark-desktop.png" alt="The Record page in the dark theme: a green Record intact badge, filters, and entries showing the email that was refused by the person."> | <img src="docs/screenshots/rules-desktop.png" alt="The Rules page: your own rules, the presets Steward ships with, and the Would this be allowed? tester."> |
+
+| Bots                                                                                                                                                                | Settings and the setup checklist (dark theme)                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/bots-desktop.png" alt="The Bots page: a search box, category and capability filters, and bots suggested because the mail is connected."> | <img src="docs/screenshots/settings-dark-desktop.png" alt="Settings in the dark theme: the setup checklist says what is ready and what still needs a key."> |
+
+On a phone, the left rail becomes a bottom tab bar and every page reflows to one column:
+
+<p align="center">
+  <img src="docs/screenshots/today-phone.png" width="200" alt="Today on a phone: the greeting, the ask box and starter prompts, with Today, Chat, Tasks, Computer and More in the bottom bar.">
+  <img src="docs/screenshots/chat-phone.png" width="200" alt="A new conversation on a phone: Good evening, what can Steward do for you, and a choice of agent above the message box.">
+  <img src="docs/screenshots/tasks-phone.png" width="200" alt="Tasks on a phone: filter tabs with counts and an empty state saying nothing needs you right now.">
+  <img src="docs/screenshots/record-dark-phone.png" width="200" alt="The Record on a phone in the dark theme, with the Record intact badge.">
+</p>
+
+More screenshots, taken on a real model, are further down and in [docs/images](docs/images).
+
+## Tech stack
+
+| Layer          | What Steward uses                                                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Language       | TypeScript 7 everywhere, ES modules, run directly by Node through `tsx`                                                                   |
+| Runtime        | Node 24.2+ (uses the built-in `node:sqlite` and `import.meta.main`)                                                                       |
+| Web app        | React 19, Vite 8, Tailwind CSS 4, React Router 8, TanStack Query 5, Motion, Lucide icons, Sonner toasts, Streamdown for streamed Markdown |
+| Agent client   | CopilotKit React v2 over the [AG-UI](https://github.com/ag-ui-protocol/ag-ui) protocol                                                    |
+| Server         | [Hono](https://hono.dev) on `@hono/node-server`, the CopilotKit runtime, server-sent events and a WebSocket for the live screen           |
+| Models         | The AI SDK through any OpenAI-compatible Chat Completions API; a scripted model for demos and tests                                       |
+| Policy         | Rules in [CEL](https://cel.dev) (`cel-js`), validated with Zod 4                                                                          |
+| Storage        | One SQLite file (`node:sqlite`) with a hash-chained, append-only record                                                                   |
+| Agent computer | Playwright Chromium, a per-agent workspace folder and a shell                                                                             |
+| Coding agents  | The [Agent Client Protocol](https://agentclientprotocol.com) SDK (Claude Code, Gemini CLI) and Codex's app server                         |
+| Tooling        | pnpm 10 workspaces, Biome 2 (lint and format), Vitest 5 (unit), Playwright 1.64 and axe-core (end-to-end and accessibility)               |
+
 ## Quick start
 
-You need [Node](https://nodejs.org) 24.2 or newer and [pnpm](https://pnpm.io) 10. On Node 24,
-`corepack enable` gives you the right pnpm. Node 25 and later no longer include corepack, so run
-`npm install -g pnpm@10` instead. Steward runs on macOS and Linux; on Windows, use WSL.
+### Prerequisites
+
+- **[Node](https://nodejs.org) 24.2 or newer.** Older versions stop with a message saying so.
+- **[pnpm](https://pnpm.io) 10.** On Node 24, `corepack enable` gives you the right pnpm. Node 25 and
+  later no longer include corepack, so run `npm install -g pnpm@10` instead.
+- **macOS or Linux.** On Windows, use WSL.
+- **A model key is optional.** Without one, Steward runs a scripted demo model and says so.
+
+### Install and run
 
 ```sh
 git clone https://github.com/jeevithg090/Steward.git
@@ -93,6 +165,57 @@ work with straight away.
 > **Keep your keys outside the repository** by pointing at any `.env` file:
 > `STEWARD_ENV_FILE=/path/to/.env pnpm dev`. Every setting is in
 > [docs/configuration.md](docs/configuration.md).
+
+## Configuration
+
+Steward reads environment variables from your shell, then the file named by `STEWARD_ENV_FILE`,
+then `.env` at the repository root (copy [.env.example](.env.example)); the first value found wins,
+and blank values count as unset. Nothing is required: with no variables at all, Steward starts with
+the scripted model and the demo inbox. The ones you are most likely to set:
+
+| Variable                                                                                 | Required?                     | Default                        | What it does                                                                                                 |
+| ---------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `OPENROUTER_API_KEY`                                                                     | No (needed for a real model)  | none                           | Key for OpenRouter, the default provider. Without a key for the chosen provider, the scripted model runs.    |
+| `STEWARD_MODEL_PROVIDER`                                                                 | No                            | `openrouter` (from the tenant) | `openrouter`, `openai`, `anthropic`, `gemini`, `nvidia`, `xai`, `ollama`, `openai-compatible` or `scripted`. |
+| `STEWARD_MODEL`                                                                          | No                            | the tenant's model             | The model id, such as `anthropic/claude-sonnet-5.5`.                                                         |
+| `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`, `XAI_API_KEY` | Only for that provider        | none                           | The key for each provider.                                                                                   |
+| `STEWARD_MODEL_BASE_URL`                                                                 | Only for `openai-compatible`  | the provider's endpoint        | The endpoint of your own OpenAI-compatible server.                                                           |
+| `STEWARD_MODEL_API_KEY`                                                                  | Only if that server needs one | none                           | The key for an `openai-compatible` server.                                                                   |
+| `STEWARD_MODEL_MAX_TOKENS`                                                               | No                            | `4096`                         | The most one reply may write (256 to 65536).                                                                 |
+| `STEWARD_PORT`                                                                           | No                            | `8787`                         | The server's port.                                                                                           |
+| `STEWARD_HOST`                                                                           | No                            | `127.0.0.1`                    | Where the server listens. Steward has no sign-in, so leave it on this machine.                               |
+| `STEWARD_DEVICE_PORT`                                                                    | No                            | `8788`                         | The phone port (only `/device/*`, with a token per phone); `off` switches it off.                            |
+| `STEWARD_DATA_DIR`                                                                       | No                            | `.steward-data`                | Where the SQLite file and the agent's browser profile and files live.                                        |
+| `STEWARD_TENANT`                                                                         | No                            | `steward`                      | Which folder under `tenants/` to load, such as `tempo`.                                                      |
+| `STEWARD_DEMO_GOOGLE`                                                                    | No                            | on                             | The made-up demo inbox and calendar. `0` runs with no mail.                                                  |
+| `STEWARD_WORKERS`                                                                        | No                            | on                             | Routines, the morning brief and approval expiry. `0` switches them off.                                      |
+| `STEWARD_HEADFUL`                                                                        | No                            | off                            | `1` shows the agent's browser as a window instead of running it headless.                                    |
+| `STEWARD_DIRECTORY_URL`                                                                  | No                            | `directory/index.json`         | Where the Bots page finds bots: the bundled index, or your own directory's `https://` address.               |
+| `STEWARD_ENV_FILE`                                                                       | No                            | none                           | A `.env` file to read before the repository's own.                                                           |
+
+The full reference, with every variable (phone relay, delegation limits, private hosts, the web
+app's dev proxy, the eval and the end-to-end tests) and the data folder's layout, is
+[docs/configuration.md](docs/configuration.md). Preferences such as the model, plain language, the
+brief's time and your time zone can also be changed in the app, under **Settings**.
+
+## Running in production
+
+"Production" for Steward means one long-running process on your own machine, serving the built web
+app itself:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+pnpm build                                # builds every package and apps/web/dist
+NODE_ENV=production pnpm --filter @steward/server start
+```
+
+Open `http://127.0.0.1:8787`. When `apps/web/dist` exists, the server serves it at `/` beside the
+API, so there is no separate web server to run. `NODE_ENV=production` refuses the development-only
+switches `STEWARD_DEV_ORIGINS` and `STEWARD_ALLOW_PRIVATE_HOSTS`. To keep it running, use whatever
+your system uses for that (a `launchd` agent, a `systemd --user` unit, `pm2`), and keep
+`STEWARD_HOST` on `127.0.0.1`. See [Deployment](#deployment) for the phone, the relay and the bot
+directory.
 
 ## Try it in five minutes
 
@@ -152,6 +275,32 @@ sends it to the gateway. The gateway works out what the call touches, decides it
 rules, writes the decision to the record, and only then acts. When the answer is "ask", the run
 ends with an interrupt and the approval card appears; your answer resumes it, and the gateway acts
 on the answer exactly once.
+
+What happens when a call has to ask, for example the email in step 3 above:
+
+```mermaid
+sequenceDiagram
+    actor You
+    participant Web as Web app
+    participant Server as Server and agent
+    participant Gateway
+    participant Record
+    You->>Web: "Email sam@example.com about Friday"
+    Web->>Server: run (AG-UI)
+    Server->>Gateway: mail_send(to, subject, body)
+    Gateway->>Gateway: deny rules, safety floor, taint,<br/>outbound check, ask and allow rules, defaults
+    Gateway->>Record: append "asked" (sealed with the previous hash)
+    Gateway-->>Web: interrupt: approval card
+    You->>Web: Refuse / Allow once / Allow in this conversation / Always allow
+    Web->>Server: POST /api/approvals/:id/decision
+    Server->>Record: append your answer
+    alt allowed
+        Server->>Gateway: act exactly once
+        Gateway->>Record: append the result
+    else refused
+        Server-->>Web: the agent is told it was refused, and says so
+    end
+```
 
 Everything lives in one SQLite file on your machine (Node's built-in `node:sqlite`). More in
 [docs/architecture.md](docs/architecture.md).
@@ -380,48 +529,286 @@ against. To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Development
 
+Clone and install as in the [quick start](#quick-start), then:
+
 ```sh
-pnpm dev            # server and web app together
+pnpm dev            # server and web app together, with one prefix per process
 pnpm check          # typecheck, lint (Biome) and unit tests (Vitest)
 pnpm e2e            # end-to-end tests in Chromium, with the scripted model (Playwright)
-pnpm eval:triage    # how well a model sorts mail, on a labelled set
 ```
 
-CI (`.github/workflows/ci.yml`) runs all of it on every push to `main` and every pull request, on
-Node 24 and 26 with the scripted model, so it needs no secrets and sends nothing to any model
-provider. Run `pnpm check` and `pnpm e2e` yourself before you push, too.
+Run `pnpm check` and `pnpm e2e` before you push. CI (`.github/workflows/ci.yml`) runs them on every
+push to `main` and every pull request, on Node 24 and 26 with the scripted model, so it needs no
+secrets and sends nothing to any model provider.
 
-`pnpm build` builds every package and the web app; `pnpm --filter @steward/web build:phone` builds
-the phone app. The bot directory can also run on its own in a container: see
-[apps/directory/Dockerfile](apps/directory/Dockerfile).
+### Scripts
 
-| Folder                | What is in it                                                                |
-| --------------------- | ---------------------------------------------------------------------------- |
-| `apps/web`            | The web app                                                                  |
-| `apps/server`         | The server: wiring, REST, the runtime endpoint, live updates, the phone port |
-| `apps/directory`      | The hosted bot directory: search, MCP, submissions and review                |
-| `apps/relay`          | The end-to-end encrypted relay for the phone app                             |
-| `packages/shared`     | Contracts: types, the tool catalogue, the REST routes                        |
-| `packages/gateway`    | Policy, approvals and the record                                             |
-| `packages/agent`      | Models, tools, the prompt, the governed middleware, tenants                  |
-| `packages/computer`   | The agent's browser, files and shell                                         |
-| `packages/connectors` | Mail and calendar, MCP, web tools                                            |
-| `packages/proactive`  | Triage, the brief, tasks, routines, memory, skills                           |
-| `packages/harnesses`  | Claude Code, Gemini CLI, Codex and other coding agents as Steward agents     |
-| `packages/bots`       | The bot pack format, validation and the directory client                     |
-| `packages/bots-gen`   | The bot generator, the quality judge and the seed converters                 |
-| `packages/phone`      | The phone catalogue built from your profile                                  |
-| `packages/shortcuts`  | Builds, checks and signs the iPhone shortcuts                                |
-| `packages/remote`     | Crypto and protocol shared by the bridge, the relay and the phone app        |
-| `packages/db`         | SQLite                                                                       |
-| `directory`           | The 1,251 bots that ship with Steward, and the index built from them         |
-| `tenants`             | Tenant packages: `steward` and `tempo`                                       |
-| `evals/triage`        | The triage eval set and results                                              |
-| `tests/e2e`           | End-to-end tests                                                             |
+Run from the repository root.
+
+| Command                                  | What it does                                                                                   |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `pnpm dev`                               | Starts the server (`:8787`, phone port `:8788`) and the web app (`:5173`) and says when ready. |
+| `pnpm dev --help`                        | Explains what `pnpm dev` starts and where settings come from.                                  |
+| `pnpm dev:server`                        | Only the server, restarting on changes.                                                        |
+| `pnpm dev:web`                           | Only the web app; it proxies `/api` and `/ws` to the server.                                   |
+| `pnpm build`                             | Builds every package that has a build, including `apps/web/dist`.                              |
+| `pnpm --filter @steward/web build:phone` | Builds the phone app.                                                                          |
+| `pnpm --filter @steward/server start`    | Runs the server once, without watching; serves `apps/web/dist` when it exists.                 |
+| `pnpm typecheck`                         | Type-checks every package, the root and the end-to-end specs.                                  |
+| `pnpm lint`                              | Biome's linter and formatter check, without changing files.                                    |
+| `pnpm format`                            | Formats everything with Biome.                                                                 |
+| `pnpm test` / `pnpm test:watch`          | Unit tests with Vitest, once or watching.                                                      |
+| `pnpm e2e`                               | End-to-end tests with Playwright against a fresh server and web app.                           |
+| `pnpm budget`                            | Builds the web app and fails if the first load passes 1,000 kB of JavaScript.                  |
+| `pnpm eval:triage`                       | Measures how well a model sorts mail, on a labelled set (`--rules-only` needs no model).       |
+| `pnpm check`                             | `typecheck`, `lint` and `test` in a row: what to run before a commit.                          |
+
+## Project structure
+
+```text
+Steward/
+├── apps/
+│   ├── web/              the web app (React, Vite, Tailwind): every page, the chat, the computer panel
+│   │   ├── src/app/          the shell: routes, layout, accessibility settings, shortcuts, banners
+│   │   ├── src/pages/        one lazily loaded page per route, including the 404 page
+│   │   ├── src/components/   the design system (ui/) and shared cards: approvals, brief, tasks
+│   │   ├── src/features/     chat, computer and voice
+│   │   └── phone/            the phone app (built with build:phone)
+│   ├── server/           the server: wiring, REST, the CopilotKit runtime endpoint, live updates, the phone port
+│   ├── directory/        the hosted bot directory: search, MCP, submissions and review (has a Dockerfile)
+│   └── relay/            the end-to-end encrypted relay for the phone app
+├── packages/
+│   ├── shared/           contracts: types, the tool catalogue, the REST routes and request schemas
+│   ├── gateway/          policy (CEL rules, taint, outbound checks), approvals and the hash-chained record
+│   ├── agent/            models, tools, the prompt, the governed middleware, tenants
+│   ├── computer/         the agent's browser (Playwright), files and shell, and the secret box
+│   ├── connectors/       mail and calendar, MCP, web fetch and search
+│   ├── proactive/        triage, the brief, tasks, routines, memory, skills, and the triage eval
+│   ├── harnesses/        Claude Code, Gemini CLI, Codex and other coding agents as Steward agents
+│   ├── bots/             the bot pack format, validation and the directory client
+│   ├── bots-gen/         the bot generator, the quality judge and the seed converters
+│   ├── phone/            the phone catalogue built from your profile
+│   ├── shortcuts/        builds, checks and signs the iPhone shortcuts
+│   ├── remote/           crypto and protocol shared by the bridge, the relay and the phone app
+│   └── db/               SQLite helpers
+├── directory/            The 1,251 bots that ship with Steward, and the index built from them
+├── tenants/              tenant packages: steward (the default) and tempo
+├── docs/                 reference docs; images/ and screenshots/ hold the README's pictures
+├── evals/triage/         the triage eval set and results
+├── tests/e2e/            Playwright end-to-end and accessibility tests
+├── scripts/              dev.mjs (pnpm dev) and the bundle budget check
+├── .env.example          every common setting, commented
+├── PLAN.md               the contracts and the decisions behind them
+└── biome.json, vitest.config.ts, tsconfig.base.json, pnpm-workspace.yaml
+```
 
 [PLAN.md](PLAN.md) holds the contracts and the decisions behind them, and
 [docs/plans](docs/plans) the plans for the bot directory, the phone and other agents.
-[CONTRIBUTING.md](CONTRIBUTING.md) says how to propose a change.
+
+## API reference
+
+The web app talks to the server over a small REST API under `/api`, plus the CopilotKit runtime at
+`/api/copilotkit` (AG-UI), a server-sent events stream and one WebSocket. Every route, with its
+request and response types, is defined once in
+[packages/shared/src/api.ts](packages/shared/src/api.ts), and request bodies are validated with the
+Zod schemas there.
+
+**Auth.** The main port has no sign-in: it answers only on `127.0.0.1` (or hosts you list in
+`STEWARD_ALLOWED_HOSTS`), refuses requests whose `Host` is anything else, refuses state-changing
+requests from other sites, and wants JSON bodies. Phones use the separate device port, where every
+`/device/*` call carries a per-phone token. So "Auth" below is **local** (this machine only) for
+every route.
+
+| Method                   | Path                                                   | Description                                                                 |
+| ------------------------ | ------------------------------------------------------ | --------------------------------------------------------------------------- |
+| GET                      | `/api/health`                                          | `{ "ok": true }` when the server is up.                                     |
+| GET                      | `/api/info`                                            | Brand, agents, starters, the model in use, and whether mail is the demo.    |
+| GET                      | `/api/agents`, `/api/harnesses`                        | Every agent and coding agent, and whether each can answer.                  |
+| GET, PUT                 | `/api/settings`                                        | Your preferences.                                                           |
+| GET, POST                | `/api/setup`, `/api/setup/check`                       | The setup checklist, and running its checks again.                          |
+| GET                      | `/api/events`                                          | Server-sent events: approvals, tasks, notifications and other live changes. |
+| POST                     | `/api/copilotkit`                                      | The CopilotKit runtime (AG-UI): runs agents.                                |
+| GET, POST                | `/api/threads`                                         | Conversations; start one.                                                   |
+| GET, PATCH, DELETE       | `/api/threads/:id`                                     | One conversation: read, rename, delete.                                     |
+| GET, DELETE              | `/api/threads/:id/allows[/:allowId]`                   | What was allowed for this conversation only; turn one off.                  |
+| GET                      | `/api/approvals`, `/api/approvals/:id`                 | Approvals (`?status=pending`).                                              |
+| POST                     | `/api/approvals/:id/decision`                          | Answer one: `once`, `always`, `conversation` or `refuse`, with a note.      |
+| GET, POST                | `/api/rules`                                           | Your rules; add one (the CEL is checked first).                             |
+| PUT, DELETE              | `/api/rules/:id`                                       | Change or remove a rule.                                                    |
+| GET                      | `/api/rules/presets`                                   | The rules Steward ships with (read only).                                   |
+| POST                     | `/api/rules/dry-run`                                   | Would this call be allowed? Runs nothing.                                   |
+| GET                      | `/api/audit`                                           | The record, newest first (`?before=&limit=&type=&effect=&q=`).              |
+| GET                      | `/api/audit/verify`                                    | Checks the hash chain (`?full=1` for every entry).                          |
+| GET                      | `/api/audit/export`                                    | The whole record as JSON Lines.                                             |
+| GET / PATCH / POST       | `/api/tasks`, `/api/tasks/:id`, `/api/tasks/:id/start` | Tasks: list, change state, hand one to an agent.                            |
+| GET, POST                | `/api/brief`, `/api/brief/generate`                    | Today's brief; make a new one.                                              |
+| GET                      | `/api/inbox`, `/api/calendar`                          | Mail with triage, and calendar events.                                      |
+| GET, POST                | `/api/routines`                                        | Routines; add one.                                                          |
+| PATCH, DELETE, POST      | `/api/routines/:id`, `/api/routines/:id/run`           | Change, remove or run a routine now.                                        |
+| GET, PATCH               | `/api/inbox-watch`                                     | Whether new mail starts work by itself.                                     |
+| GET, POST, DELETE        | `/api/memory[/:id]`                                    | What Steward remembers about you.                                           |
+| GET, POST, PUT, DELETE   | `/api/skills[/:id]`                                    | Skills you call with `/name`.                                               |
+| GET                      | `/api/connections`                                     | Mail, MCP apps and built-in tools.                                          |
+| POST, PUT, DELETE        | `/api/connections/mcp[/:id][/reconnect]`               | Add, change, remove or reconnect an MCP server.                             |
+| GET                      | `/api/computer/:agentId[/activity\|/files\|/file]`     | The agent's computer: status, activity, files, one file as text.            |
+| POST                     | `/api/computer/:agentId/uploads`, `/reset`             | Put a file in its workspace; restart its browser.                           |
+| WS                       | `/ws/computer/:agentId`                                | The live screen and taking the wheel.                                       |
+| GET, POST                | `/api/notifications`, `/api/notifications/read-all`    | The bell's list; mark all read.                                             |
+| GET                      | `/api/bots`, `/api/bots/installed`                     | Search the directory (`?q=&category=&sort=`); bots you added.               |
+| POST                     | `/api/bots/preview`, `/install`, `/make`, `/export`    | Preview what a bot may do, add it, make one, download it as a zip.          |
+| POST, DELETE             | `/api/bots/installed/:id[/update]`                     | Update or remove an added bot.                                              |
+| GET, POST, PATCH, DELETE | `/api/devices[/pairing\|/:id]`                         | Paired phones: list, pair, rename, revoke.                                  |
+| POST, GET                | `/api/devices/remote-pairing[/:id[/confirm\|/refuse]]` | Pairing the phone app through the relay.                                    |
+| GET, PUT                 | `/api/phone`, `/api/phone/catalogue`                   | Phone settings and the catalogue a shortcut is built from.                  |
+| POST                     | `/api/phone/shortcuts/:id/install`                     | A one-time link to install a shortcut.                                      |
+
+Examples, from a local run with the scripted model:
+
+```sh
+$ curl -s http://127.0.0.1:8787/api/health
+{"ok":true}
+
+# Would sending this email be allowed? (Nothing is sent.)
+$ curl -s -X POST http://127.0.0.1:8787/api/rules/dry-run \
+    -H 'content-type: application/json' \
+    -d '{"tool":"mail_send","args":{"to":["sam@example.com"],"subject":"Friday","body":"See you at 10"}}'
+{"effect":"ask","rule":{"id":"default:send-asks","name":"Sending asks","source":"preset"},"reason":"Sending anything asks first","findings":[]}
+
+# Add a rule that refuses every shell command
+$ curl -s -X POST http://127.0.0.1:8787/api/rules \
+    -H 'content-type: application/json' \
+    -d '{"name":"No shell","effect":"deny","when":"tool.surface == \"shell\""}'
+{"id":"rule_01m7e42d6r45x4xeqn5h","name":"No shell","effect":"deny","when":"tool.surface == \"shell\"","description":"","source":"person","enabled":true,"createdAt":"2026-11-14T22:50:23.320Z"}
+
+# A rule that is not valid CEL is refused, with a reason
+$ curl -s -X POST http://127.0.0.1:8787/api/rules \
+    -H 'content-type: application/json' -d '{"name":"Bad","effect":"deny","when":"tool.surface =="}'
+{"error":"That rule's condition doesn't work: This rule cannot be used: it is not valid CEL: it ends too early."}
+
+# Check the record's hash chain
+$ curl -s http://127.0.0.1:8787/api/audit/verify
+{"ok":true,"count":7,"scope":"recent","fullCheckAt":"2026-11-14T22:41:57.308Z","head":{"seq":7,"hash":"836f2aab…","at":"2026-11-14T22:48:52.493Z"}}
+```
+
+The tools an agent can call (`mail_send`, `browser_click`, `shell_run` and the rest), with their
+kind and surface, are listed in [docs/tools.md](docs/tools.md).
+
+## Testing
+
+```sh
+pnpm test                              # every unit test (Vitest, Node and happy-dom projects)
+pnpm vitest run --project web          # only the web app's tests
+pnpm vitest run packages/gateway       # only one package
+pnpm e2e                               # Playwright, in Chromium, against a fresh server and web app
+STEWARD_E2E_REUSE=1 pnpm e2e           # reuse a pnpm dev you already started
+```
+
+What is covered:
+
+- **Unit tests** (about 180 files, more than 2,600 tests) sit next to the code in every package and
+  app: the gateway's decisions, taint, the outbound check, the record's hash chain, CEL rules, the
+  model providers, tools, the agent's browser in real Chromium (`packages/computer`), connectors,
+  MCP, bots and their safety scans, the phone's crypto and pairing, the server's routes and
+  security checks, and every page and component of the web app.
+- **End-to-end tests** in `tests/e2e/` drive the real app with the scripted model: Today and the
+  brief, chat, approvals, rules, the record, routines, bots, other agents, the computer, knowledge
+  (memory and skills), the phone, and two accessibility suites: an
+  [axe](https://github.com/dequelabs/axe-core) audit of the main pages, keyboard paths and the
+  display settings (large text, contrast, dark theme, reduced motion).
+- **Docs tests** (`docs/docs.test.ts`) fail when a link or anchor in the docs breaks, when the tool
+  table drifts from the catalogue, or when the README's bot numbers drift from the directory.
+- **The triage eval** (`pnpm eval:triage`) scores a model on a labelled set of emails.
+
+The computer's tests and `pnpm e2e` need Playwright's Chromium: run
+`pnpm exec playwright install chromium` first.
+
+## Linting and formatting
+
+[Biome](https://biomejs.dev) does both, configured in [biome.json](biome.json) (two spaces, 110
+columns, with accessibility rules on):
+
+```sh
+pnpm lint       # check, change nothing
+pnpm format     # format everything
+```
+
+Types are checked separately with `pnpm typecheck`. `pnpm check` runs types, lint and unit tests
+together.
+
+## Deployment
+
+Steward is built to run on your own computer, and the repository ships no hosted deployment for
+the main app.
+
+- **Steward itself:** build and run it as in [Running in production](#running-in-production). Keep
+  `STEWARD_HOST=127.0.0.1`: it has no sign-in, so never expose port 8787 to a network or a tunnel.
+- **Your phone:** tunnel the phone port (8788) only, for example with Tailscale Serve or a
+  Cloudflare tunnel. Settings → Phone shows ready-to-copy commands. See [docs/phone.md](docs/phone.md).
+- **The phone app's relay** (`apps/relay`) runs anywhere you can host a small Node service:
+  `pnpm --filter @steward/relay start`, then point `STEWARD_RELAY_URL` and `STEWARD_RELAY_TOKEN` at it.
+- **The bot directory** (`apps/directory`) has a [Dockerfile](apps/directory/Dockerfile):
+
+  ```sh
+  docker build -f apps/directory/Dockerfile -t steward-directory .
+  docker run -p 8790:8790 -v steward-directory:/data \
+    -e DIRECTORY_SITE_URL=https://bots.example.org steward-directory
+  ```
+
+  Pass `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` and `ADMIN_GITHUB_LOGINS` at run time to take
+  submissions, then point Steward's `STEWARD_DIRECTORY_URL` at it. See
+  [docs/directory.md](docs/directory.md).
+
+## Troubleshooting
+
+**`Steward needs Node 24.2 or newer, and this is Node 22…`**
+Steward uses `node:sqlite` and `import.meta.main`, which arrived in Node 24.2. Install a newer Node
+(with `nvm install 24`, for example) and run `pnpm install` again.
+
+**`pnpm: command not found`, or the wrong pnpm version**
+On Node 24, run `corepack enable`. On Node 25 or later, which no longer include corepack, run
+`npm install -g pnpm@10`.
+
+**`Port 8787 is already in use. Is Steward already running?`**
+Another Steward (or something else) holds the port. Stop it, or set `STEWARD_PORT` (and
+`STEWARD_DEVICE_PORT` for 8788) to free ports in `.env`. The web app's proxy follows `STEWARD_PORT`.
+
+**`Chromium is not installed for Playwright. Run pnpm exec playwright install chromium.`**
+The agent's computer needs Playwright's own Chromium. Run that command once. On Linux, if Chromium
+then fails to start for missing libraries, run `pnpm exec playwright install --with-deps chromium`.
+
+**Every page says "Scripted model"**
+Steward found no key for the chosen provider, so it runs the scripted demo model. Add the key to
+`.env` (for example `OPENROUTER_API_KEY=…`) and restart, or choose a model in **Settings**. The
+setup checklist on Settings says exactly what is missing.
+
+**`Steward only answers on this machine's own address.` or `Requests from other sites are refused.`**
+These are the server's DNS-rebinding and cross-site protections. Open Steward at
+`http://127.0.0.1:5173` or `http://localhost:5173`. If you deliberately put it behind a proxy you
+control, list that host name in `STEWARD_ALLOWED_HOSTS`.
+
+**The agent's browser cannot open `localhost` or a page on my network**
+By design, it refuses loopback, private and link-local addresses. For local development only, set
+`STEWARD_ALLOW_PRIVATE_HOSTS=1` (refused when `NODE_ENV=production`).
+
+**I want to start over**
+Stop Steward and delete the data folder (`.steward-data/` by default). To start the welcome again,
+open `http://localhost:5173/welcome`.
+
+**Is my data sent anywhere?**
+Only to the model provider you chose. CopilotKit's telemetry is switched off at start-up, and the
+bot directory is read from the repository unless you point `STEWARD_DIRECTORY_URL` elsewhere.
+
+## Known limitations
+
+- **Single user, local only.** No sign-in, no accounts, no multi-device sync beyond the phone.
+- **No real Google account yet.** The mail and calendar client speaks Gmail's and Calendar's API
+  shape, but OAuth is not wired up; out of the box you get the demo inbox.
+- **The shell is not sandboxed.** The agent's shell and browser run on your machine as you, which
+  is why every command asks. There is no container isolation yet.
+- **Web and iPhone only.** No desktop app, Android app or chat-app channels.
+- **Alpha.** APIs, the data format and the YAML schema may still change between versions.
+
+The comparison with OpenBot and OpenDuet above lists more of what Steward does not do yet.
 
 ## Roadmap
 
@@ -437,6 +824,21 @@ the phone app. The bot directory can also run on its own in a container: see
 - Signing in, for running Steward somewhere other than your own machine.
 
 Ideas and votes are welcome in the [issues](https://github.com/jeevithg090/Steward/issues).
+
+## Contributing
+
+Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setting up, finding your way
+around, the rules that never bend (everything goes through the gateway, Steward fails closed,
+nothing made up passes for real), the code style, tests and the accessibility checklist for
+anything on screen. In short:
+
+1. Open an issue first for anything large, so the approach can be agreed.
+2. Make the change on a branch, with tests next to the code.
+3. Run `pnpm check` and `pnpm e2e`, and check a UI change by keyboard and at phone width.
+4. Open a pull request that says what changed and how you checked it.
+
+Please follow the [code of conduct](CODE_OF_CONDUCT.md), and report security problems privately as
+[SECURITY.md](SECURITY.md) describes.
 
 ## History
 
