@@ -387,9 +387,13 @@ pnpm e2e            # end-to-end tests in Chromium, with the scripted model (Pla
 pnpm eval:triage    # how well a model sorts mail, on a labelled set
 ```
 
-CI (`.github/workflows/ci.yml`) is set up to run all of it on Node 24 and 26 with the scripted
-model, so it needs no secrets and sends nothing to any model provider. It is not running on GitHub
-for this repository yet, so run `pnpm check` and `pnpm e2e` yourself before you push.
+CI (`.github/workflows/ci.yml`) runs all of it on every push to `main` and every pull request, on
+Node 24 and 26 with the scripted model, so it needs no secrets and sends nothing to any model
+provider. Run `pnpm check` and `pnpm e2e` yourself before you push, too.
+
+`pnpm build` builds every package and the web app; `pnpm --filter @steward/web build:phone` builds
+the phone app. The bot directory can also run on its own in a container: see
+[apps/directory/Dockerfile](apps/directory/Dockerfile).
 
 | Folder                | What is in it                                                                |
 | --------------------- | ---------------------------------------------------------------------------- |
